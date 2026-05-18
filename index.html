@@ -9,6 +9,7 @@
 <style>
     body { font-family: system-ui, -apple-system, sans-serif; }
     .fantasy-title { font-family: Georgia, serif; }
+    #enemy-img { transition: opacity 0.2s ease; }
 </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
@@ -58,6 +59,9 @@
     <div id="actions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
     <div id="combat" class="hidden bg-zinc-900 border border-red-900 rounded-2xl p-4 mb-4">
+        <div class="mb-3">
+            <img id="enemy-img" class="w-full h-44 object-cover rounded-xl border border-red-800/60" alt="Enemy creature" style="display: none;">
+        </div>
         <div class="flex justify-between text-sm mb-2">
             <div><span id="enemy-name" class="font-bold text-red-400"></span></div>
             <div class="text-xs">HP <span id="enemy-hp"></span>/<span id="enemy-max"></span></div>
@@ -191,16 +195,6 @@ function updateStats() {
     document.getElementById('location').textContent = state.locationName;
 }
 
-function updateCombatUI() {
-    if (!state.enemy) return;
-    const e = state.enemy;
-    document.getElementById('enemy-name').innerHTML = e.name;
-    document.getElementById('enemy-hp').innerHTML = e.hp;
-    document.getElementById('enemy-max').innerHTML = e.maxHp;
-    document.getElementById('enemy-atk').innerHTML = e.atk;
-    updateStats();
-}
-
 function toggleStory() {
     const box = document.getElementById('story-box');
     storyOpen = !storyOpen;
@@ -316,13 +310,32 @@ function restInn() {
     updateAll(); save();
 }
 
+function setEnemyImage(enemyName) {
+    const img = document.getElementById('enemy-img');
+    if (!img) return;
+    let src = 'assets/creatures/forest-wolf.jpg';
+    const n = (enemyName || '').toLowerCase();
+    if (n.includes('goblin')) {
+        src = 'assets/creatures/goblin-scout.jpg';
+    } else if (n.includes('skeleton')) {
+        src = 'assets/creatures/skeleton-warrior.jpg';
+    } else if (n.includes('wolf')) {
+        src = 'assets/creatures/forest-wolf.jpg';
+    }
+    img.src = src;
+    img.style.display = 'block';
+    img.onerror = function() { this.style.display = 'none'; };
+}
+
 function startFight() {
     const pool = [{name:"Goblin Scout",hp:22,maxHp:22,atk:7,def:2,xp:18,gold:6},{name:"Forest Wolf",hp:32,maxHp:32,atk:8,def:3,xp:26,gold:9}];
     state.enemy = pool[Math.floor(Math.random()*pool.length)];
     state.inCombat = true;
     document.getElementById('combat-log').innerHTML = '';
+    setEnemyImage(state.enemy.name);
     addCombatLog(Lore.combatStart.default(state.enemy.name));
-    updateCombatUI(); renderActions();
+    updateCombatUI();
+    renderActions();
 }
 
 function searchLoot() {
@@ -335,8 +348,10 @@ function searchLoot() {
             state.enemy = {name:"Corrupted Wolf",hp:20,maxHp:20,atk:6,def:2,xp:15,gold:5};
             state.inCombat = true;
             document.getElementById('combat-log').innerHTML = '';
+            setEnemyImage(state.enemy.name);
             addCombatLog("A corrupted beast lunges at you!");
-            updateCombatUI(); renderActions();
+            updateCombatUI();
+            renderActions();
         }, 500);
         return;
     }
@@ -354,8 +369,10 @@ function exploreRuins() {
             state.enemy = {name:"Skeleton Warrior",hp:45,maxHp:45,atk:9,def:5,xp:35,gold:18};
             state.inCombat = true;
             document.getElementById('combat-log').innerHTML = '';
+            setEnemyImage(state.enemy.name);
             addCombatLog("A skeletal warrior rises!");
             updateCombatUI();
+            renderActions();
         } else {
             state.player.gold += 30;
             state.inventory.push({id:Date.now(),name:"Health Potion",type:"consumable",bonus:30,desc:"Restores 30 HP",flavor:"Found in the ruins."});
@@ -379,7 +396,7 @@ function updateCombatUI() {
     document.getElementById('enemy-name').innerHTML = e.name;
     document.getElementById('enemy-hp').innerHTML = e.hp;
     document.getElementById('enemy-max').innerHTML = e.maxHp;
-    document.getElementById('enemy-atk').innerHTML = e.atk;
+    // enemy-atk element removed from HTML - no longer needed
     updateStats();
 }
 
@@ -447,6 +464,8 @@ function endCombatWin() {
 function endCombat() {
     state.inCombat = false;
     state.enemy = null;
+    const img = document.getElementById('enemy-img');
+    if (img) img.style.display = 'none';
     document.getElementById('combat').classList.add('hidden');
     renderActions();
     updateAll();
