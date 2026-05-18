@@ -177,9 +177,10 @@ function applyMapTransform() {
 
 function recalculateMaxStats() {
     const p = state.player;
-    const newMaxMp = 20 + Math.floor(p.int * 2.2);
-    if (newMaxMp > p.maxMp) {
-        p.maxMp = newMaxMp;
+    // Always ensure max MP reflects current INT (fixes medallion +1 INT not updating mana)
+    const calculatedMaxMp = 20 + Math.floor(p.int * 2.2);
+    if (calculatedMaxMp > p.maxMp) {
+        p.maxMp = calculatedMaxMp;
         p.mp = Math.min(p.mp, p.maxMp);
     }
 }
@@ -673,9 +674,9 @@ function hideMap() {
 
 function setupMapDragging() {
     const content = document.getElementById('map-content');
-    const container = content ? content.parentElement : null;
-    if (!content || !container) return;
+    if (!content) return;
 
+    // Mouse drag
     content.onmousedown = function(e) {
         if (mapZoom <= 1) return;
         isDragging = true;
@@ -703,6 +704,26 @@ function setupMapDragging() {
             isDragging = false;
             content.style.cursor = 'grab';
         }
+    };
+
+    // Touch drag support for mobile
+    content.ontouchstart = function(e) {
+        if (mapZoom <= 1 || !e.touches || e.touches.length !== 1) return;
+        isDragging = true;
+        dragStartX = e.touches[0].clientX - mapPanX;
+        dragStartY = e.touches[0].clientY - mapPanY;
+    };
+
+    content.ontouchmove = function(e) {
+        if (!isDragging || !e.touches || e.touches.length !== 1) return;
+        e.preventDefault();
+        mapPanX = e.touches[0].clientX - dragStartX;
+        mapPanY = e.touches[0].clientY - dragStartY;
+        applyMapTransform();
+    };
+
+    content.ontouchend = function() {
+        isDragging = false;
     };
 
     content.style.cursor = (mapZoom > 1) ? 'grab' : 'default';
