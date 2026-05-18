@@ -9,7 +9,6 @@
 <style>
     body { font-family: system-ui, -apple-system, sans-serif; }
     .fantasy-title { font-family: Georgia, serif; }
-    .story-text { font-family: Georgia, serif; }
 </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
@@ -22,7 +21,6 @@
         </div>
     </div>
 
-    <!-- Stats -->
     <div class="bg-zinc-900 rounded-2xl p-4 mb-4">
         <div class="grid grid-cols-2 gap-4">
             <div>
@@ -41,13 +39,12 @@
         </div>
     </div>
 
-    <!-- Story Log -->
     <div class="bg-zinc-900 rounded-2xl mb-4 overflow-hidden">
         <div onclick="toggleStory()" class="px-4 py-2 flex justify-between cursor-pointer bg-zinc-950">
             <span class="font-semibold"><i class="fas fa-book text-amber-400"></i> Story Log</span>
             <i id="story-icon" class="fas fa-chevron-up"></i>
         </div>
-        <div id="story-box" class="p-4 max-h-[200px] overflow-auto text-sm story-text"><div id="story"></div></div>
+        <div id="story-box" class="p-4 max-h-[200px] overflow-auto text-sm"><div id="story"></div></div>
     </div>
 
     <div class="flex justify-between mb-2 px-1">
@@ -60,7 +57,6 @@
 
     <div id="actions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
-    <!-- Combat -->
     <div id="combat" class="hidden bg-zinc-900 border border-red-900 rounded-2xl p-4 mb-4">
         <div class="flex justify-between text-sm mb-2">
             <div><span id="enemy-name" class="font-bold text-red-400"></span></div>
@@ -85,12 +81,8 @@
 <!-- Intro Modal -->
 <div id="intro-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-6">
     <div class="bg-zinc-900 rounded-3xl max-w-md w-full p-7 border border-zinc-700">
-        <h2 class="fantasy-title text-2xl text-amber-400 mb-4 text-center">The Shadow Rises</h2>
-        <div class="space-y-3 text-sm text-zinc-300 story-text mb-6">
-            <p>For generations, the village of <b>Eldoria</b> lived in peace under ancient wards.</p>
-            <p>But twisted creatures have begun emerging from the Whispering Woods. You are <b>Aether</b>, a young Spellblade. The Elder has summoned you.</p>
-            <p class="text-amber-300">The shadows grow bolder. If no one stands against them, Eldoria will fall.</p>
-        </div>
+        <h2 class="fantasy-title text-2xl text-amber-400 mb-4 text-center" id="intro-title"></h2>
+        <div id="intro-text" class="space-y-3 text-sm text-zinc-300 mb-6"></div>
         <div class="flex gap-3">
             <button onclick="startGame(true)" class="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-2xl font-bold">Begin Adventure</button>
             <button onclick="startGame(false)" class="flex-1 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-2xl">Skip Intro</button>
@@ -156,6 +148,7 @@
     </div>
 </div>
 
+<script src="lore.js"></script>
 <script>
 let state = {
     player: {name:"Aether",level:1,hp:50,maxHp:50,mp:20,maxMp:20,xp:0,gold:20,str:5,int:5,def:3,weapon:{name:"Rusty Sword",bonus:3},armor:{name:"Cloth Tunic",bonus:1},spells:["Firebolt"]},
@@ -205,7 +198,6 @@ function updateCombatUI() {
     document.getElementById('enemy-hp').innerHTML = e.hp;
     document.getElementById('enemy-max').innerHTML = e.maxHp;
     document.getElementById('enemy-atk').innerHTML = e.atk;
-    // Live update main HP during combat
     updateStats();
 }
 
@@ -219,10 +211,7 @@ function toggleStory() {
 function renderActions() {
     const c = document.getElementById('actions');
     c.innerHTML = '';
-    if (state.inCombat) {
-        document.getElementById('combat').classList.remove('hidden');
-        return;
-    }
+    if (state.inCombat) { document.getElementById('combat').classList.remove('hidden'); return; }
     document.getElementById('combat').classList.add('hidden');
     let html = '';
     const loc = state.location;
@@ -246,14 +235,40 @@ function renderActions() {
 
 function updateAll() { updateStats(); renderActions(); renderStory(); }
 
-function showIntro() { document.getElementById('intro-modal').classList.remove('hidden'); document.getElementById('intro-modal').classList.add('flex'); }
-function startGame(withIntro) { document.getElementById('intro-modal').classList.add('hidden'); document.getElementById('intro-modal').classList.remove('flex'); if (withIntro && state.story.length === 0) { setTimeout(() => { log("The wind carries an unnatural chill through Eldoria tonight.", true); log("You stand before the Elder in the village square."); }, 400); } }
+function showIntro() {
+    const modal = document.getElementById('intro-modal');
+    document.getElementById('intro-title').innerHTML = Lore.intro.title;
+    const textContainer = document.getElementById('intro-text');
+    textContainer.innerHTML = Lore.intro.paragraphs.map(p => `<p>${p}</p>`).join('');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function startGame(withIntro) {
+    document.getElementById('intro-modal').classList.add('hidden');
+    document.getElementById('intro-modal').classList.remove('flex');
+    if (withIntro && state.story.length === 0) {
+        setTimeout(() => {
+            log("The wind carries an unnatural chill through Eldoria tonight.", true);
+            log("You stand before the Elder in the village square.");
+        }, 400);
+    }
+}
 
 function talkElder() {
-    if (state.quest === 0) { log("<b>Elder:</b> 'Aether... the wards are failing. Dark things crawl from the Whispering Woods.'", true); log("<b>Elder:</b> 'Slay at least three of the corrupted beasts. Then I will tell you what truly lies deeper.'"); state.quest = 1; }
-    else if (state.quest === 1 && state.kills >= 3) { log("<b>Elder:</b> 'You have done well. The creatures were once men and beasts of these woods.'", true); log("<b>Elder:</b> 'Something ancient stirs in the Ruined Temple. Take this gold and go — but beware.'"); state.player.gold += 40; state.quest = 2; }
-    else if (state.quest === 2) { log("<b>Elder:</b> 'The Ruined Temple was once a place of power. Now it festers. Whatever sleeps there must not wake.'", true); }
-    else { log("<b>Elder:</b> 'Return when you have slain more of the foul creatures.'"); }
+    const elder = Lore.elder;
+    if (state.quest === 0) {
+        elder.stage0.forEach(line => log(line, true));
+        state.quest = 1;
+    } else if (state.quest === 1 && state.kills >= 3) {
+        elder.stage1_complete.forEach(line => log(line, true));
+        state.player.gold += 40;
+        state.quest = 2;
+    } else if (state.quest === 2) {
+        elder.stage2.forEach(line => log(line, true));
+    } else {
+        elder.default.forEach(line => log(line));
+    }
     updateAll(); save();
 }
 
@@ -276,8 +291,7 @@ function openShop() {
         if (can) d.onclick = () => buyFromShop(item);
         list.appendChild(d);
     });
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
 }
 
 function buyFromShop(item) {
@@ -288,9 +302,7 @@ function buyFromShop(item) {
     else if (item.type === "spell") { if (!state.player.spells.includes("Heal")) state.player.spells.push("Heal"); }
     else { state.inventory.push({id: Date.now(), name: item.name, type: "consumable", bonus: item.bonus, desc: item.effect}); }
     log(`You obtained <b>${item.name}</b>.`);
-    hideShop();
-    updateAll();
-    save();
+    hideShop(); updateAll(); save();
 }
 
 function hideShop() { document.getElementById('shop-modal').classList.remove('flex'); document.getElementById('shop-modal').classList.add('hidden'); }
@@ -309,9 +321,8 @@ function startFight() {
     state.enemy = pool[Math.floor(Math.random()*pool.length)];
     state.inCombat = true;
     document.getElementById('combat-log').innerHTML = '';
-    addCombatLog(`A <b>${state.enemy.name}</b> emerges from the dark!`);
-    updateCombatUI();
-    renderActions();
+    addCombatLog(Lore.combatStart.default(state.enemy.name));
+    updateCombatUI(); renderActions();
 }
 
 function searchLoot() {
@@ -319,7 +330,7 @@ function searchLoot() {
     if (now - state.lastLootTime < 45000) return log("Wait before searching again.");
     state.lastLootTime = now;
     if (Math.random() < 0.22) {
-        log("Your search attracted something dangerous...");
+        log(Lore.loot.danger);
         setTimeout(() => {
             state.enemy = {name:"Corrupted Wolf",hp:20,maxHp:20,atk:6,def:2,xp:15,gold:5};
             state.inCombat = true;
@@ -331,8 +342,8 @@ function searchLoot() {
     }
     if (Math.random() < 0.6) {
         const g = Math.floor(Math.random()*8)+6; state.player.gold += g;
-        log(`You found <b>${g} Gold</b>!`, true);
-    } else log("Nothing found.");
+        log(Lore.loot.foundGold(g), true);
+    } else log(Lore.loot.nothing);
     updateAll();
 }
 
@@ -360,6 +371,16 @@ function addCombatLog(msg) {
     d.innerHTML = msg;
     el.appendChild(d);
     el.scrollTop = el.scrollHeight;
+}
+
+function updateCombatUI() {
+    if (!state.enemy) return;
+    const e = state.enemy;
+    document.getElementById('enemy-name').innerHTML = e.name;
+    document.getElementById('enemy-hp').innerHTML = e.hp;
+    document.getElementById('enemy-max').innerHTML = e.maxHp;
+    document.getElementById('enemy-atk').innerHTML = e.atk;
+    updateStats();
 }
 
 function swordAttack() {
@@ -418,7 +439,7 @@ function endCombatWin() {
     if (state.kills === 4 && !p.spells.includes("Heal")) { p.spells.push("Heal"); log("You learned the <b>Heal</b> spell!", true); }
     if (p.xp >= p.level * 80 + 20) {
         p.level++; p.xp = 0; p.maxHp += 8; p.hp = p.maxHp; p.str++; p.int++; p.def++;
-        log(`<b>LEVEL UP!</b> You reached Level ${p.level}!`, true);
+        log(Lore.levelUp(p.level), true);
     }
     endCombat();
 }
@@ -434,9 +455,9 @@ function endCombat() {
 
 function travel(dest) {
     hideMap();
-    if (dest === 'village') { state.location = 'village'; state.locationName = 'Eldoria Village Square'; log("You return to Eldoria Village."); }
-    else if (dest === 'woods') { state.location = 'woods'; state.locationName = 'Whispering Woods'; log("You enter the Whispering Woods..."); }
-    else if (dest === 'ruins') { if (state.player.level < 3) return log("You need to be Level 3+."); state.location = 'ruins'; state.locationName = 'Ruined Temple'; log("You enter the Ruined Temple."); }
+    if (dest === 'village') { state.location = 'village'; state.locationName = 'Eldoria Village Square'; log(Lore.travel.village); }
+    else if (dest === 'woods') { state.location = 'woods'; state.locationName = 'Whispering Woods'; log(Lore.travel.woods); }
+    else if (dest === 'ruins') { if (state.player.level < 3) return log("You need to be Level 3+."); state.location = 'ruins'; state.locationName = 'Ruined Temple'; log(Lore.travel.ruins); }
     updateAll();
 }
 
