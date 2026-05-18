@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spellblade Chronicles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;700&display=swap');
+        body { font-family: 'Roboto Mono', monospace; }
+        .fantasy-title { font-family: 'UnifrakturCook', cursive; }
+        .story-text { font-family: 'Playfair Display', serif; line-height: 1.6; }
+        .game-container { max-width: 720px; margin: 0 auto; }
+        .stat-bar { height: 10px; background: linear-gradient(to right, #4ade80, #22c55e); transition: width 0.3s; }
+        .mp-bar { background: linear-gradient(to right, #60a5fa, #3b82f6); }
+        .log-entry { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .rpg-button { transition: all 0.1s ease; }
+        .rpg-button:active { transform: scale(0.95); }
+        .modal { animation: modalPop 0.2s ease; }
+        .enemy { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <div class="game-container min-h-screen p-4 pb-8">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-4">
+            <div>
+                <h1 class="fantasy-title text-4xl text-amber-400 tracking-wider">Spellblade Chronicles</h1>
+                <p class="text-xs text-zinc-500">A Story-Driven Fantasy RPG</p>
+            </div>
+            <div class="text-right">
+                <div id="player-name" class="font-bold text-lg text-amber-300">Aether</div>
+                <div class="text-xs text-zinc-400">Level <span id="player-level">1</span> Spellblade</div>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="bg-zinc-900 rounded-xl p-4 mb-4 border border-zinc-800">
+            <div class="grid grid-cols-2 gap-4">
+                <!-- HP -->
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="flex items-center gap-1"><i class="fas fa-heart text-red-500"></i> <span>HP</span></span>
+                        <span id="hp-text" class="font-mono">50 / 50</span>
+                    </div>
+                    <div class="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+                        <div id="hp-bar" class="stat-bar h-3 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+                <!-- MP -->
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="flex items-center gap-1"><i class="fas fa-magic text-blue-400"></i> <span>MP</span></span>
+                        <span id="mp-text" class="font-mono">20 / 20</span>
+                    </div>
+                    <div class="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+                        <div id="mp-bar" class="mp-bar h-3 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mt-3 text-sm">
+                <div class="flex items-center gap-4">
+                    <div><span class="text-amber-400">XP:</span> <span id="xp-text" class="font-bold">0 / 100</span></div>
+                    <div><span class="text-yellow-400">Gold:</span> <span id="gold-text" class="font-bold">20</span></div>
+                </div>
+                <div class="text-xs px-2 py-0.5 bg-zinc-800 rounded">STR <span id="str-text">5</span> • INT <span id="int-text">5</span> • DEF <span id="def-text">3</span></div>
+            </div>
+        </div>
+
+        <!-- Story / Log Area -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-4 min-h-[220px] max-h-[280px] overflow-y-auto" id="story-container">
+            <div id="story-text" class="story-text text-lg leading-relaxed text-zinc-300"></div>
+        </div>
+
+        <!-- Context Info -->
+        <div id="location-info" class="flex items-center gap-2 text-sm mb-3 px-1">
+            <i class="fas fa-map-marker-alt text-emerald-400"></i>
+            <span id="location-text" class="font-medium">Eldoria Village Square</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div id="action-buttons" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Combat UI (hidden by default) -->
+        <div id="combat-ui" class="hidden bg-zinc-900 border border-red-900/50 rounded-2xl p-5 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <div class="text-red-400 text-sm font-bold flex items-center gap-2">
+                        <i class="fas fa-skull"></i> 
+                        <span id="enemy-name">Enemy</span>
+                    </div>
+                    <div class="text-xs text-zinc-400">HP: <span id="enemy-hp">20</span> / <span id="enemy-maxhp">20</span></div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs">Enemy ATK: <span id="enemy-atk" class="font-bold">6</span></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="text-xs text-zinc-400 mb-1">COMBAT LOG</div>
+                <div id="combat-log" class="bg-black/40 rounded-lg p-3 text-sm h-24 overflow-y-auto font-mono text-zinc-300"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="playerAttack()" class="rpg-button bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                    <i class="fas fa-sword"></i> <span>Strike with Sword</span>
+                </button>
+                <button onclick="castSpell()" class="rpg-button bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                    <i class="fas fa-magic"></i> <span>Cast Firebolt</span>
+                </button>
+                <button onclick="defendAction()" class="rpg-button bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                    <i class="fas fa-shield-alt"></i> <span>Defend</span>
+                </button>
+                <button onclick="fleeCombat()" class="rpg-button bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                    <i class="fas fa-running"></i> <span>Flee</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer quick actions -->
+        <div class="flex gap-2 justify-center">
+            <button onclick="showInventory()" class="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2">
+                <i class="fas fa-box"></i> <span>Inventory</span>
+            </button>
+            <button onclick="showCharacter()" class="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2">
+                <i class="fas fa-user"></i> <span>Character</span>
+            </button>
+            <button onclick="saveGame()" class="px-4 py-2 text-sm bg-emerald-900 hover:bg-emerald-800 rounded-xl flex items-center gap-2">
+                <i class="fas fa-save"></i> <span>Save</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div id="inventory-modal" onclick="if (event.target.id === 'inventory-modal') hideInventory()" class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full sm:w-[420px] rounded-t-3xl sm:rounded-3xl p-6 border border-zinc-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-box text-amber-400"></i> Inventory</h3>
+                <button onclick="hideInventory()" class="text-zinc-400 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
+            </div>
+            <div id="inventory-list" class="space-y-2 max-h-[50vh] overflow-auto pr-1">
+                <!-- JS populated -->
+            </div>
+            <div class="mt-4 pt-4 border-t border-zinc-800 text-xs text-zinc-500">Tap an item to equip or use it.</div>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shop-modal" onclick="if (event.target.id === 'shop-modal') hideShop()" class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full sm:w-[420px] rounded-t-3xl sm:rounded-3xl p-6 border border-zinc-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-store text-emerald-400"></i> Merchant's Shop</h3>
+                <button onclick="hideShop()" class="text-zinc-400 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
+            </div>
+            <div id="shop-items" class="space-y-3">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            player: {
+                name: "Aether",
+                level: 1,
+                hp: 50,
+                maxHp: 50,
+                mp: 20,
+                maxMp: 20,
+                xp: 0,
+                gold: 20,
+                str: 5,
+                int: 5,
+                def: 3,
+                equippedWeapon: { name: "Rusty Sword", bonus: 3, type: "weapon" },
+                equippedArmor: { name: "Cloth Tunic", bonus: 1, type: "armor" },
+                spells: ["Firebolt"],
+            },
+            inventory: [
+                { id: 1, name: "Rusty Sword", type: "weapon", bonus: 3, desc: "+3 damage" },
+                { id: 2, name: "Health Potion", type: "consumable", bonus: 30, desc: "Restores 30 HP" }
+            ],
+            location: "Eldoria Village Square",
+            questStage: 0,
+            enemiesDefeated: 0,
+            inCombat: false,
+            currentEnemy: null,
+            storyLog: []
+        };
+
+        let combatLogEntries = [];
+
+        // Tailwind script
+        function initTailwind() {
+            document.documentElement.style.setProperty('--accent', '#f59e0b');
+        }
+
+        function updateUI() {
+            const p = gameState.player;
+            // Stats
+            document.getElementById('player-level').textContent = p.level;
+            document.getElementById('hp-text').textContent = `${p.hp} / ${p.maxHp}`;
+            document.getElementById('mp-text').textContent = `${p.mp} / ${p.maxMp}`;
+            document.getElementById('xp-text').textContent = `${p.xp} / ${getXPForNextLevel()}`;
+            document.getElementById('gold-text').textContent = p.gold;
+            document.getElementById('str-text').textContent = p.str;
+            document.getElementById('int-text').textContent = p.int;
+            document.getElementById('def-text').textContent = p.def;
+
+            // Bars
+            const hpPercent = Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100));
+            document.getElementById('hp-bar').style.width = `${hpPercent}%`;
+            const mpPercent = Math.max(0, Math.min(100, (p.mp / p.maxMp) * 100));
+            document.getElementById('mp-bar').style.width = `${mpPercent}%`;
+
+            // Location
+            document.getElementById('location-text').textContent = gameState.location;
+
+            // Story
+            renderStory();
+
+            // Buttons
+            renderActionButtons();
+        }
+
+        function getXPForNextLevel() {
+            return gameState.player.level * 80 + 20;
+        }
+
+        function renderStory() {
+            const container = document.getElementById('story-text');
+            container.innerHTML = '';
+            
+            if (gameState.storyLog.length === 0) {
+                addToStory("The wind carries whispers of danger through Eldoria. You stand ready with your sword and budding magic.", true);
+            }
+
+            gameState.storyLog.slice(-6).forEach(entry => {
+                const p = document.createElement('p');
+                p.className = `log-entry mb-2.5 ${entry.important ? 'text-amber-300 font-medium' : 'text-zinc-300'}`;
+                p.innerHTML = entry.text;
+                container.appendChild(p);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addToStory(text, important = false) {
+            gameState.storyLog.push({ text, important, time: Date.now() });
+            if (gameState.storyLog.length > 12) gameState.storyLog.shift();
+            renderStory();
+        }
+
+        function renderActionButtons() {
+            const container = document.getElementById('action-buttons');
+            container.innerHTML = '';
+            const p = gameState.player;
+
+            if (gameState.inCombat) return; // Combat buttons handled separately
+
+            const buttons = [];
+
+            // Context aware buttons
+            if (gameState.location.includes('Village')) {
+                buttons.push({ label: 'Talk to Elder', icon: 'fa-user-tie', action: talkToElder });
+                buttons.push({ label: 'Visit Merchant', icon: 'fa-store', action: showShop });
+                if (gameState.questStage >= 1) {
+                    buttons.push({ label: 'Rest at Inn', icon: 'fa-bed', action: restAtInn });
+                }
+            }
+
+            buttons.push({ label: 'Venture Forth', icon: 'fa-mountain', action: ventureForth });
+
+            if (gameState.questStage >= 2) {
+                buttons.push({ label: 'Explore Ruins', icon: 'fa-archway', action: exploreRuins });
+            }
+
+            // Always available
+            buttons.push({ label: 'Inventory', icon: 'fa-box', action: showInventory });
+            buttons.push({ label: 'Character', icon: 'fa-user', action: showCharacter });
+
+            buttons.forEach(btn => {
+                const btnEl = document.createElement('button');
+                btnEl.className = `rpg-button col-span-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-amber-600/50 active:bg-zinc-900 text-left px-4 py-3.5 rounded-2xl flex items-center gap-3 text-sm font-medium`;
+                btnEl.innerHTML = `<i class="fas ${btn.icon} w-5 text-amber-400"></i> <span>${btn.label}</span>`;
+                btnEl.onclick = btn.action;
+                container.appendChild(btnEl);
+            });
+        }
+
+        // === GAME LOGIC ===
+        function talkToElder() {
+            const stage = gameState.questStage;
+            if (stage === 0) {
+                addToStory("<b>Elder:</b> 'Young Spellblade, goblins have been raiding our livestock. Clear the Whispering Woods and I will reward you handsomely.'", true);
+                gameState.questStage = 1;
+                addToStory("<i>New quest: Defeat creatures in the woods (0/3)</i>");
+            } else if (stage === 1 && gameState.enemiesDefeated >= 3) {
+                addToStory("<b>Elder:</b> 'You have proven yourself! The shadows grow stronger near the old ruins. Take this gold and investigate.'", true);
+                gameState.player.gold += 35;
+                gameState.questStage = 2;
+                addToStory("You received <b>35 Gold</b> and a map to the Ruined Temple.");
+            } else if (stage >= 2) {
+                addToStory("<b>Elder:</b> 'The Shadow Lord stirs in the fortress beyond the ruins. Only a true Spellblade can stop him. Be careful, child.'", true);
+            } else {
+                addToStory("<b>Elder:</b> 'The woods are still dangerous. Return when you have slain more of the foul creatures.'");
+            }
+            updateUI();
+            saveGame();
+        }
+
+        function showShop() {
+            const modal = document.getElementById('shop-modal');
+            const container = document.getElementById('shop-items');
+            container.innerHTML = '';
+
+            const items = [
+                { name: "Iron Sword", type: "weapon", bonus: 7, price: 55, desc: "Solid blade. +7 damage" },
+                { name: "Leather Armor", type: "armor", bonus: 4, price: 45, desc: "Better protection. +4 DEF" },
+                { name: "Health Potion", type: "consumable", bonus: 30, price: 12, desc: "Restores 30 HP" },
+                { name: "Mana Potion", type: "consumable", bonus: 15, price: 15, desc: "Restores 15 MP" },
+                { name: "Spell Tome: Heal", type: "spell", bonus: 0, price: 80, desc: "Learn the Heal spell" }
+            ];
+
+            items.forEach(item => {
+                const canAfford = gameState.player.gold >= item.price;
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center p-3 rounded-xl ${canAfford ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-zinc-950 opacity-60'} cursor-pointer`;
+                div.innerHTML = `
+                    <div>
+                        <div class="font-medium">${item.name}</div>
+                        <div class="text-xs text-zinc-400">${item.desc}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-emerald-400 font-bold">${item.price}g</div>
+                    </div>
+                `;
+                if (canAfford) {
+                    div.onclick = () => buyItem(item, div);
+                }
+                container.appendChild(div);
+            });
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function buyItem(item, element) {
+            if (gameState.player.gold < item.price) return;
+            gameState.player.gold -= item.price;
+
+            if (item.type === "weapon") {
+                gameState.player.equippedWeapon = { name: item.name, bonus: item.bonus, type: "weapon" };
+                addToStory(`You equipped the <b>${item.name}</b>!`);
+            } else if (item.type === "armor") {
+                gameState.player.equippedArmor = { name: item.name, bonus: item.bonus, type: "armor" };
+                addToStory(`You equipped the <b>${item.name}</b>!`);
+            } else if (item.type === "spell") {
+                if (!gameState.player.spells.includes("Heal")) {
+                    gameState.player.spells.push("Heal");
+                    addToStory(`You learned the <b>Heal</b> spell! It restores health in combat.`);
+                } else {
+                    addToStory("You already know this spell.");
+                    gameState.player.gold += item.price; // refund
+                    return;
+                }
+            } else {
+                // consumable
+                gameState.inventory.push({ id: Date.now(), name: item.name, type: item.type, bonus: item.bonus, desc: item.desc });
+                addToStory(`Purchased <b>${item.name}</b>.`);
+            }
+
+            hideShop();
+            updateUI();
+            saveGame();
+        }
+
+        function hideShop() {
+            const modal = document.getElementById('shop-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            updateUI();
+        }
+
+        function restAtInn() {
+            const cost = 8;
+            if (gameState.player.gold < cost) {
+                addToStory("You don't have enough gold to rest.");
+                return;
+            }
+            gameState.player.gold -= cost;
+            gameState.player.hp = gameState.player.maxHp;
+            gameState.player.mp = gameState.player.maxMp;
+            addToStory("You rest at the inn and recover your strength.", true);
+            updateUI();
+            saveGame();
+        }
+
+        function ventureForth() {
+            if (gameState.questStage === 0) {
+                addToStory("The Elder has not yet given you a quest. Speak with him first.");
+                return;
+            }
+            gameState.location = "Whispering Woods";
+            addToStory("You step into the dark woods. Shadows move between the trees...");
+            // Start a random encounter
+            setTimeout(() => {
+                startRandomEncounter();
+            }, 600);
+            updateUI();
+        }
+
+        function exploreRuins() {
+            gameState.location = "Ruined Temple";
+            addToStory("You arrive at the ancient temple. The air is thick with dark magic.");
+            setTimeout(() => {
+                if (Math.random() > 0.4) {
+                    startCombat(createEnemy("Skeleton Warrior", 45, 9, 5, 35, 18));
+                } else {
+                    addToStory("You found an old chest! Inside was a Mana Potion and 25 gold.");
+                    gameState.player.gold += 25;
+                    gameState.inventory.push({id: Date.now(), name: "Mana Potion", type: "consumable", bonus: 15, desc: "Restores 15 MP"});
+                    updateUI();
+                }
+            }, 700);
+            updateUI();
+        }
+
+        function createEnemy(name, hp, atk, def, xp, gold) {
+            return { name, hp, maxHp: hp, atk, def, xpReward: xp, goldReward: gold };
+        }
+
+        function startRandomEncounter() {
+            const enemies = [
+                createEnemy("Goblin Scout", 22, 7, 2, 18, 6),
+                createEnemy("Forest Wolf", 32, 8, 3, 26, 9),
+                createEnemy("Shadow Imp", 18, 6, 1, 15, 7)
+            ];
+            const enemy = enemies[Math.floor(Math.random() * enemies.length)];
+            startCombat(enemy);
+        }
+
+        function startCombat(enemy) {
+            gameState.inCombat = true;
+            gameState.currentEnemy = { ...enemy };
+            combatLogEntries = [];
+
+            document.getElementById('action-buttons').classList.add('hidden');
+            document.getElementById('combat-ui').classList.remove('hidden');
+
+            document.getElementById('enemy-name').textContent = enemy.name;
+            document.getElementById('enemy-hp').textContent = enemy.hp;
+            document.getElementById('enemy-maxhp').textContent = enemy.maxHp;
+            document.getElementById('enemy-atk').textContent = enemy.atk;
+
+            addCombatLog(`You encounter a <b>${enemy.name}</b>!`, true);
+            updateUI();
+        }
+
+        function addCombatLog(text, important = false) {
+            const logDiv = document.getElementById('combat-log');
+            const p = document.createElement('div');
+            p.className = `mb-1 text-xs ${important ? 'text-amber-300' : 'text-zinc-300'}`;
+            p.innerHTML = text;
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            combatLogEntries.push(text);
+        }
+
+        function playerAttack() {
+            if (!gameState.inCombat || !gameState.currentEnemy) return;
+            const enemy = gameState.currentEnemy;
+            const p = gameState.player;
+
+            const weaponBonus = p.equippedWeapon ? p.equippedWeapon.bonus : 0;
+            let damage = Math.floor(4 + p.str * 1.1 + weaponBonus - enemy.def * 0.6);
+            damage = Math.max(3, damage + Math.floor(Math.random() * 4) - 1);
+
+            enemy.hp -= damage;
+            addCombatLog(`You strike with your ${p.equippedWeapon.name} for <b class="text-red-400">${damage}</b> damage.`);
+
+            if (enemy.hp <= 0) {
+                endCombatWin();
+                return;
+            }
+            enemyTurn();
+            updateCombatUI();
+        }
+
+        function castSpell() {
+            if (!gameState.inCombat || !gameState.currentEnemy) return;
+            const p = gameState.player;
+            const enemy = gameState.currentEnemy;
+
+            if (p.mp < 8) {
+                addCombatLog("Not enough MP to cast a spell!");
+                return;
+            }
+
+            p.mp -= 8;
+            let damage = Math.floor(9 + p.int * 1.4);
+            if (p.spells.includes("Firebolt")) damage += 4;
+
+            enemy.hp -= damage;
+            addCombatLog(`You cast <b>Firebolt</b> for <b class="text-blue-400">${damage}</b> damage!`);
+
+            if (enemy.hp <= 0) {
+                endCombatWin();
+                return;
+            }
+            enemyTurn();
+            updateCombatUI();
+        }
+
+        function defendAction() {
+            if (!gameState.inCombat) return;
+            addCombatLog("You brace yourself, reducing incoming damage.");
+            // Enemy does reduced damage
+            const enemy = gameState.currentEnemy;
+            let dmg = Math.max(1, Math.floor(enemy.atk * 0.55 - gameState.player.def * 0.7));
+            gameState.player.hp = Math.max(0, gameState.player.hp - dmg);
+            addCombatLog(`The ${enemy.name} hits you for <b class="text-red-400">${dmg}</b> damage (defended).`);
+            checkPlayerDeath();
+            updateCombatUI();
+        }
+
+        function fleeCombat() {
+            if (!gameState.inCombat) return;
+            if (Math.random() < 0.55) {
+                addToStory("You successfully fled the battle.");
+                endCombat(false);
+            } else {
+                addCombatLog("Flee failed! The enemy blocks your escape.");
+                enemyTurn();
+                updateCombatUI();
+            }
+        }
+
+        function enemyTurn() {
+            const enemy = gameState.currentEnemy;
+            const p = gameState.player;
+            if (!enemy || enemy.hp <= 0) return;
+
+            let dmg = Math.max(1, Math.floor(enemy.atk - p.def * 0.8 + Math.random() * 3));
+            p.hp = Math.max(0, p.hp - dmg);
+            addCombatLog(`The <b>${enemy.name}</b> attacks you for <b class="text-red-400">${dmg}</b> damage.`);
+
+            checkPlayerDeath();
+        }
+
+        function checkPlayerDeath() {
+            if (gameState.player.hp <= 0) {
+                addCombatLog("<b class='text-red-500'>You have fallen in battle...</b>");
+                setTimeout(() => {
+                    endCombat(false);
+                    addToStory("You wake up back in the village, barely alive. The Elder tends to your wounds.", true);
+                    gameState.player.hp = Math.floor(gameState.player.maxHp * 0.3);
+                    gameState.location = "Eldoria Village Square";
+                    updateUI();
+                }, 1400);
+            }
+        }
+
+        function updateCombatUI() {
+            const enemy = gameState.currentEnemy;
+            if (!enemy) return;
+            document.getElementById('enemy-hp').textContent = Math.max(0, enemy.hp);
+            document.getElementById('hp-text').textContent = `${gameState.player.hp} / ${gameState.player.maxHp}`;
+            const hpPercent = Math.max(0, (gameState.player.hp / gameState.player.maxHp) * 100);
+            document.getElementById('hp-bar').style.width = `${hpPercent}%`;
+        }
+
+        function endCombatWin() {
+            const enemy = gameState.currentEnemy;
+            const p = gameState.player;
+
+            const goldGained = enemy.goldReward || 8;
+            const xpGained = enemy.xpReward || 20;
+
+            p.gold += goldGained;
+            p.xp += xpGained;
+            gameState.enemiesDefeated++;
+
+            addCombatLog(`<b class="text-emerald-400">Victory!</b> You defeated the ${enemy.name}.`, true);
+            addToStory(`You defeated the <b>${enemy.name}</b>! Gained <b>${xpGained} XP</b> and <b>${goldGained} Gold</b>.`, true);
+
+            // Loot chance
+            if (Math.random() < 0.45) {
+                const loot = { id: Date.now(), name: "Health Potion", type: "consumable", bonus: 30, desc: "Restores 30 HP" };
+                gameState.inventory.push(loot);
+                addToStory("You found a <b>Health Potion</b> on the enemy!");
+            }
+
+            // Chance to learn new spell early
+            if (gameState.enemiesDefeated === 4 && !p.spells.includes("Heal")) {
+                p.spells.push("Heal");
+                addToStory("You discovered an ancient technique and learned <b>Heal</b>!", true);
+            }
+
+            checkLevelUp();
+            endCombat(true);
+        }
+
+        function checkLevelUp() {
+            const p = gameState.player;
+            const needed = getXPForNextLevel();
+            if (p.xp >= needed) {
+                p.level++;
+                p.xp -= needed;
+                p.maxHp += 8;
+                p.hp = p.maxHp;
+                p.maxMp += 4;
+                p.mp = p.maxMp;
+                p.str += 1;
+                p.int += 1;
+                p.def += 1;
+
+                addToStory(`<b>LEVEL UP!</b> You are now Level ${p.level}! All stats increased.`, true);
+
+                // Unlock new content
+                if (p.level === 3 && gameState.questStage < 2) {
+                    gameState.questStage = 2;
+                    addToStory("The Elder senses your growing power and mentions the Ruined Temple.");
+                }
+            }
+        }
+
+        function endCombat(victory) {
+            gameState.inCombat = false;
+            gameState.currentEnemy = null;
+
+            document.getElementById('combat-ui').classList.add('hidden');
+            document.getElementById('action-buttons').classList.remove('hidden');
+
+            if (victory && gameState.enemiesDefeated >= 3 && gameState.questStage === 1) {
+                addToStory("You have cleared enough threats. The Elder may have new information.");
+            }
+
+            if (gameState.questStage >= 2 && gameState.enemiesDefeated >= 7) {
+                // Unlock final boss option
+                addToStory("A dark presence calls from beyond the temple. Perhaps it is time to confront the source.");
+            }
+
+            updateUI();
+            saveGame();
+        }
+
+        function showInventory() {
+            const modal = document.getElementById('inventory-modal');
+            const list = document.getElementById('inventory-list');
+            list.innerHTML = '';
+
+            if (gameState.inventory.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-zinc-400">Your inventory is empty.</div>`;
+            }
+
+            gameState.inventory.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl cursor-pointer';
+                let actionText = 'Equip';
+                if (item.type === 'consumable') actionText = 'Use';
+
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-medium">${item.name}</div>
+                        <div class="text-xs text-zinc-400">${item.desc || ''}</div>
+                    </div>
+                    <div>
+                        <button class="px-4 py-1.5 text-xs bg-amber-600 hover:bg-amber-700 rounded-xl font-bold">${actionText}</button>
+                    </div>
+                `;
+
+                div.querySelector('button').onclick = (e) => {
+                    e.stopImmediatePropagation();
+                    useOrEquipItem(index);
+                };
+                list.appendChild(div);
+            });
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function useOrEquipItem(index) {
+            const item = gameState.inventory[index];
+            const p = gameState.player;
+
+            if (item.type === 'weapon') {
+                // Swap with equipped
+                if (p.equippedWeapon) {
+                    gameState.inventory.push(p.equippedWeapon);
+                }
+                p.equippedWeapon = { name: item.name, bonus: item.bonus, type: 'weapon' };
+                addToStory(`Equipped <b>${item.name}</b>.`);
+            } else if (item.type === 'armor') {
+                if (p.equippedArmor) gameState.inventory.push(p.equippedArmor);
+                p.equippedArmor = { name: item.name, bonus: item.bonus, type: 'armor' };
+                addToStory(`Equipped <b>${item.name}</b>.`);
+            } else if (item.type === 'consumable') {
+                if (item.name.includes('Health')) {
+                    p.hp = Math.min(p.maxHp, p.hp + item.bonus);
+                    addToStory(`You used a <b>${item.name}</b> and recovered health.`);
+                } else if (item.name.includes('Mana')) {
+                    p.mp = Math.min(p.maxMp, p.mp + item.bonus);
+                    addToStory(`You used a <b>${item.name}</b> and recovered mana.`);
+                }
+                gameState.inventory.splice(index, 1);
+            }
+
+            hideInventory();
+            updateUI();
+            saveGame();
+        }
+
+        function hideInventory() {
+            const modal = document.getElementById('inventory-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function showCharacter() {
+            const p = gameState.player;
+            const spells = p.spells.length > 0 ? p.spells.join(', ') : 'None yet';
+            const weapon = p.equippedWeapon ? p.equippedWeapon.name : 'None';
+            const armor = p.equippedArmor ? p.equippedArmor.name : 'None';
+
+            const html = `
+                <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onclick="this.remove()">
+                    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 w-full max-w-[340px] mx-4">
+                        <h3 class="text-2xl font-bold mb-4 text-center">${p.name} the Spellblade</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span>Level</span> <span class="font-bold">${p.level}</span></div>
+                            <div class="flex justify-between"><span>Experience</span> <span>${p.xp} / ${getXPForNextLevel()}</span></div>
+                            <div class="pt-2 border-t border-zinc-700"></div>
+                            <div class="flex justify-between"><span>Strength</span> <span class="font-bold text-red-400">${p.str}</span></div>
+                            <div class="flex justify-between"><span>Intelligence</span> <span class="font-bold text-blue-400">${p.int}</span></div>
+                            <div class="flex justify-between"><span>Defense</span> <span class="font-bold text-emerald-400">${p.def}</span></div>
+                            <div class="pt-2 border-t border-zinc-700"></div>
+                            <div><span class="text-xs text-zinc-400">Weapon:</span> <span class="font-medium">${weapon}</span></div>
+                            <div><span class="text-xs text-zinc-400">Armor:</span> <span class="font-medium">${armor}</span></div>
+                            <div><span class="text-xs text-zinc-400">Spells:</span> <span class="font-medium">${spells}</span></div>
+                        </div>
+                        <button onclick="this.closest('.fixed').remove()" class="mt-6 w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-bold">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function saveGame() {
+            try {
+                localStorage.setItem('spellblade_save', JSON.stringify(gameState));
+                const origText = event.currentTarget ? event.currentTarget.innerHTML : '';
+                addToStory("<i>Game progress saved.</i>");
+                // brief flash
+                const btns = document.querySelectorAll('button');
+                btns.forEach(b => b.style.transition = 'all 0.1s');
+            } catch(e) {
+                console.error('Save failed', e);
+            }
+        }
+
+        function loadGame() {
+            try {
+                const saved = localStorage.getItem('spellblade_save');
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    // Merge carefully
+                    gameState = { ...gameState, ...loaded };
+                    // Ensure some defaults
+                    if (!gameState.player.equippedWeapon) gameState.player.equippedWeapon = { name: "Rusty Sword", bonus: 3, type: "weapon" };
+                    if (!gameState.player.equippedArmor) gameState.player.equippedArmor = { name: "Cloth Tunic", bonus: 1, type: "armor" };
+                    if (!gameState.player.spells || gameState.player.spells.length === 0) gameState.player.spells = ["Firebolt"];
+                    addToStory("Loaded your saved adventure.", true);
+                } else {
+                    addToStory("No saved game found. Starting a new journey.");
+                }
+            } catch(e) {
+                console.error('Load error', e);
+                addToStory("Could not load save. Starting fresh.");
+            }
+            updateUI();
+        }
+
+        function initGame() {
+            initTailwind();
+
+            // Try to load previous save
+            loadGame();
+
+            // Initial story if new
+            if (gameState.storyLog.length === 0) {
+                addToStory("You are <b>Aether</b>, a young Spellblade trained in both blade and arcane arts.", true);
+                addToStory("The village of Eldoria faces a growing threat from shadow creatures. Speak with the Elder to begin your quest.");
+            }
+
+            // Make sure combat UI is hidden
+            document.getElementById('combat-ui').classList.add('hidden');
+            document.getElementById('action-buttons').classList.remove('hidden');
+
+            updateUI();
+
+            // Easter egg / hint
+            setTimeout(() => {
+                if (gameState.questStage === 0 && gameState.storyLog.length < 5) {
+                    const hint = document.createElement('div');
+                    hint.className = 'text-[10px] text-center text-zinc-500 mt-1';
+                    hint.textContent = 'Tip: Talk to the Elder first to start your adventure';
+                    document.getElementById('action-buttons').parentNode.appendChild(hint);
+                    setTimeout(() => hint.remove(), 6500);
+                }
+            }, 4200);
+
+            // Keyboard support (nice for desktop too)
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    const inv = document.getElementById('inventory-modal');
+                    if (!inv.classList.contains('hidden')) hideInventory();
+                    else showInventory();
+                }
+            });
+
+            console.log('%c[Spellblade] Game initialized. Have fun on your adventure!', 'color:#666');
+        }
+
+        // Boot the game
+        window.onload = initGame;
+    </script>
+</body>
+</html>
