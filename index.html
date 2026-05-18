@@ -97,42 +97,52 @@
 
 <!-- Map Modal with Custom Image -->
 <div id="map-modal" onclick="if(event.target.id==='map-modal') hideMap()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[420px] p-5">
-        <div class="flex justify-between mb-3">
+    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[620px] p-5">
+        <div class="flex justify-between mb-3 items-center">
             <div>
                 <h3 class="font-bold text-xl">World Map</h3>
                 <p class="text-xs text-zinc-400">Eldoria Region</p>
             </div>
-            <button onclick="hideMap()" class="text-2xl">&times;</button>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-zinc-800 rounded-full text-sm overflow-hidden border border-zinc-700">
+                    <button onclick="zoomMap(-0.2)" class="px-3 py-1 hover:bg-zinc-700 active:bg-zinc-600 transition-colors" title="Zoom out">-</button>
+                    <div class="px-2 text-xs text-zinc-400 select-none" id="zoom-level">100%</div>
+                    <button onclick="zoomMap(0.2)" class="px-3 py-1 hover:bg-zinc-700 active:bg-zinc-600 transition-colors" title="Zoom in">+</button>
+                </div>
+                <button onclick="resetMapZoom()" class="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-full border border-zinc-700">Reset</button>
+                <button onclick="hideMap()" class="text-2xl leading-none ml-1">&times;</button>
+            </div>
         </div>
 
         <div class="relative w-full rounded-2xl overflow-hidden border-2 border-emerald-600 shadow-xl" style="aspect-ratio: 16 / 10;">
-            <img src="assets/map/world-map.jpg" class="w-full h-full object-cover" alt="World Map">
+            <div id="map-content" style="position:absolute; top:0; left:0; width:100%; height:100%; transform-origin:center center; transition:transform 0.2s ease;">
+                <img src="assets/map/world-map.jpg" class="w-full h-full object-cover" alt="World Map">
 
-            <!-- Location Icons -->
-            <div onclick="travel('village'); hideMap();" class="absolute cursor-pointer" style="bottom: 38%; left: 28%;">
-                <div class="w-11 h-11 flex items-center justify-center bg-emerald-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
-                    <i class="fas fa-home text-white text-xl"></i>
+                <!-- Location Icons -->
+                <div onclick="travel('village'); hideMap();" class="absolute cursor-pointer" style="bottom: 38%; left: 28%;">
+                    <div class="w-11 h-11 flex items-center justify-center bg-emerald-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
+                        <i class="fas fa-home text-white text-xl"></i>
+                    </div>
+                    <div class="text-[10px] font-bold text-center text-emerald-300 mt-0.5 drop-shadow">Village</div>
                 </div>
-                <div class="text-[10px] font-bold text-center text-emerald-300 mt-0.5 drop-shadow">Village</div>
-            </div>
 
-            <div onclick="travel('woods'); hideMap();" class="absolute cursor-pointer" style="bottom: 32%; left: 48%;">
-                <div class="w-11 h-11 flex items-center justify-center bg-orange-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
-                    <i class="fas fa-tree text-white text-xl"></i>
+                <div onclick="travel('woods'); hideMap();" class="absolute cursor-pointer" style="bottom: 32%; left: 48%;">
+                    <div class="w-11 h-11 flex items-center justify-center bg-orange-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
+                        <i class="fas fa-tree text-white text-xl"></i>
+                    </div>
+                    <div class="text-[10px] font-bold text-center text-orange-300 mt-0.5 drop-shadow">Woods</div>
                 </div>
-                <div class="text-[10px] font-bold text-center text-orange-300 mt-0.5 drop-shadow">Woods</div>
-            </div>
 
-            <div onclick="travel('ruins'); hideMap();" class="absolute cursor-pointer" style="top: 22%; right: 18%;">
-                <div class="w-11 h-11 flex items-center justify-center bg-purple-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
-                    <i class="fas fa-archway text-white text-xl"></i>
+                <div onclick="travel('ruins'); hideMap();" class="absolute cursor-pointer" style="top: 22%; right: 18%;">
+                    <div class="w-11 h-11 flex items-center justify-center bg-purple-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
+                        <i class="fas fa-archway text-white text-xl"></i>
+                    </div>
+                    <div class="text-[10px] font-bold text-center text-purple-300 mt-0.5 drop-shadow">Temple</div>
                 </div>
-                <div class="text-[10px] font-bold text-center text-purple-300 mt-0.5 drop-shadow">Temple</div>
             </div>
         </div>
 
-        <p class="text-center text-xs text-zinc-400 mt-3">Tap a location to travel</p>
+        <p class="text-center text-xs text-zinc-400 mt-3">Tap a location to travel • Use +/- to zoom</p>
     </div>
 </div>
 
@@ -145,6 +155,7 @@ let state = {
     quest:0,kills:0,inCombat:false,enemy:null,story:[],lastLootTime:0, ruinsStage: 0
 };
 let storyOpen = true;
+let mapZoom = 1;
 
 function log(msg, important = false) {
     state.story.push({msg, important});
@@ -318,8 +329,9 @@ function setEnemyImage(enemyName) {
     let src = 'assets/creatures/forest-wolf.jpg';
     const n = (enemyName || '').toLowerCase();
     if (n.includes('goblin')) src = 'assets/creatures/goblin-scout.jpg';
+    else if (n.includes('shadow') || n.includes('stalker')) src = 'assets/creatures/shadow-stalker.jpg';
     else if (n.includes('skeleton') || n.includes('guardian')) src = 'assets/creatures/skeleton-warrior.jpg';
-    else if (n.includes('wolf') || n.includes('stalker')) src = 'assets/creatures/forest-wolf.jpg';
+    else if (n.includes('wolf')) src = 'assets/creatures/forest-wolf.jpg';
     else if (n.includes('fallen') || n.includes('spellblade')) src = 'assets/creatures/fallen-spellblade.jpg';
     img.src = src;
     img.style.display = 'block';
@@ -559,11 +571,34 @@ function travel(dest) {
 function showMap() {
     document.getElementById('map-modal').classList.remove('hidden');
     document.getElementById('map-modal').classList.add('flex');
+    mapZoom = 1;
+    setTimeout(applyMapZoom, 30);
 }
 
 function hideMap() {
     document.getElementById('map-modal').classList.remove('flex');
     document.getElementById('map-modal').classList.add('hidden');
+}
+
+function zoomMap(delta) {
+    mapZoom = Math.max(0.5, Math.min(4, mapZoom + delta));
+    applyMapZoom();
+}
+
+function applyMapZoom() {
+    const content = document.getElementById('map-content');
+    const levelEl = document.getElementById('zoom-level');
+    if (content) {
+        content.style.transform = `scale(${mapZoom})`;
+    }
+    if (levelEl) {
+        levelEl.textContent = Math.round(mapZoom * 100) + '%';
+    }
+}
+
+function resetMapZoom() {
+    mapZoom = 1;
+    applyMapZoom();
 }
 
 function showInventory() {
