@@ -146,7 +146,7 @@
             </div>
         </div>
 
-        <p class="text-center text-xs text-zinc-400 mt-3">Tap a location to travel • Use +/- to zoom</p>
+        <p class="text-center text-xs text-zinc-400 mt-3">Tap a location to travel • Use +/- to zoom • Drag to pan when zoomed</p>
     </div>
 </div>
 
@@ -160,17 +160,28 @@ let state = {
 };
 let storyOpen = true;
 let mapZoom = 1;
+let mapPanX = 0;
+let mapPanY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+function applyMapTransform() {
+    const content = document.getElementById('map-content');
+    if (content) {
+        content.style.transform = `scale(${mapZoom}) translate(${mapPanX}px, ${mapPanY}px)`;
+    }
+    const levelEl = document.getElementById('zoom-level');
+    if (levelEl) levelEl.textContent = Math.round(mapZoom * 100) + '%';
+}
 
 function recalculateMaxStats() {
     const p = state.player;
-    // INT now meaningfully increases max MP
     const newMaxMp = 20 + Math.floor(p.int * 2.2);
     if (newMaxMp > p.maxMp) {
         p.maxMp = newMaxMp;
         p.mp = Math.min(p.mp, p.maxMp);
     }
-    // Keep HP scaling reasonable
-    if (p.maxHp < 50) p.maxHp = 50;
 }
 
 function log(msg, important = false) {
@@ -288,6 +299,7 @@ function openShop() {
     const items = [
         {name:"Iron Sword",type:"weapon",bonus:7,price:55,effect:"+7 Damage"},
         {name:"Leather Armor",type:"armor",bonus:4,price:45,effect:"+4 Defense"},
+        {name:"Mail Armor",type:"armor",bonus:10,price:150,effect:"+10 DEF, +20 Max HP, +20 Max MP", isGreen: true, healthBonus:20, manaBonus:20},
         {name:"Health Potion",type:"consumable",bonus:30,price:12,effect:"Restores 30 HP"},
         {name:"Mana Potion",type:"consumable",bonus:15,price:15,effect:"Restores 15 MP"},
         {name:"Spell Tome: Ice Shard",type:"spell",bonus:0,price:95,effect:"Learn Ice Shard spell"}
@@ -295,8 +307,9 @@ function openShop() {
     items.forEach(item => {
         const can = state.player.gold >= item.price;
         const d = document.createElement('div');
-        d.className = `p-3 rounded-2xl flex justify-between ${can ? 'bg-zinc-800' : 'bg-zinc-950 opacity-60'}`;
-        d.innerHTML = `<div><b>${item.name}</b><div class="text-xs text-zinc-400">${item.effect}</div></div><div class="text-emerald-400 font-bold">${item.price}g</div>`;
+        const colorClass = item.isGreen ? 'border-l-4 border-emerald-500' : '';
+        d.className = `p-3 rounded-2xl flex justify-between ${can ? 'bg-zinc-800' : 'bg-zinc-950 opacity-60'} ${colorClass}`;
+        d.innerHTML = `<div><b class="${item.isGreen ? 'text-emerald-400' : ''}">${item.name}</b><div class="text-xs text-zinc-400">${item.effect}</div></div><div class="text-emerald-400 font-bold">${item.price}g</div>`;
         if (can) d.onclick = () => { buyFromShop(item); modal.remove(); };
         list.appendChild(d);
     });
@@ -305,12 +318,36 @@ function openShop() {
 function buyFromShop(item) {
     if (state.player.gold < item.price) return;
     state.player.gold -= item.price;
+    
     if (item.type === "weapon") {
         if (state.player.weapon && state.player.weapon.name !== "Rusty Sword") addToInventory({name: state.player.weapon.name, type:"weapon", bonus: state.player.weapon.bonus, desc:"Old weapon"});
         state.player.weapon = {name: item.name, bonus: item.bonus};
     } else if (item.type === "armor") {
-        if (state.player.armor && state.player.armor.name !== "Cloth Tunic") addToInventory({name: state.player.armor.name, type:"armor", bonus: state.player.armor.bonus, desc:"Old armor"});
-        state.player.armor = {name: item.name, bonus: item.bonus};
+        if (state.player.armor && state.player.armor.name !== "Cloth Tunic") {
+            if (state.player.armor.healthBonus) {
+                state.player.maxHp = Math.max(50, state.player.maxHp - state.player.armor.healthBonus);
+                state.player.hp = Math.min(state.player.hp, state.player.maxHp);
+            }
+            if (state.player.armor.manaBonus) {
+                state.player.maxMp = Math.max(20, state.player.maxMp - state.player.armor.manaBonus);
+                state.player.mp = Math.min(state.player.mp, state.player.maxMp);
+            }
+            if (state.player.armor.bonus) state.player.def = Math.max(0, state.player.def - state.player.armor.bonus);
+            addToInventory({name: state.player.armor.name, type:"armor", bonus: state.player.armor.bonus, desc:"Old armor", healthBonus: state.player.armor.healthBonus, manaBonus: state.player.armor.manaBonus});
+        }
+        
+        state.player.armor = {name: item.name, bonus: item.bonus, healthBonus: item.healthBonus || 0, manaBonus: item.manaBonus || 0};
+        
+        if (item.healthBonus) {
+            state.player.maxHp += item.healthBonus;
+            state.player.hp += item.healthBonus;
+        }
+        if (item.manaBonus) {
+            state.player.maxMp += item.manaBonus;
+            state.player.mp += item.manaBonus;
+        }
+        if (item.bonus) state.player.def += item.bonus;
+        
     } else if (item.type === "spell") {
         if (item.name.includes("Ice Shard") && !state.player.spells.includes("Ice Shard")) {
             state.player.spells.push("Ice Shard");
@@ -473,7 +510,6 @@ function updateCombatUI() {
 function swordAttack() {
     if (!state.inCombat || !state.enemy) return;
     const e = state.enemy; const p = state.player;
-    // STR focused physical damage
     let dmg = Math.max(3, Math.floor(6 + p.str * 1.1 + (p.weapon.bonus||0) - e.def + Math.random()*3));
     e.hp -= dmg;
     addCombatLog(`You strike for <span class="text-red-400">${dmg}</span> damage.`);
@@ -510,7 +546,6 @@ function castFirebolt() {
     const p = state.player; const e = state.enemy;
     if (p.mp < 8) return addCombatLog("Not enough mana!");
     p.mp -= 8;
-    // INT now has strong impact on magic
     let dmg = Math.floor(12 + p.int * 1.7);
     e.hp -= dmg;
     addCombatLog(`Firebolt hits for <span class="text-blue-400">${dmg}</span> damage!`);
@@ -616,32 +651,78 @@ function travel(dest) {
 }
 
 function showMap() {
-    document.getElementById('map-modal').classList.remove('hidden');
-    document.getElementById('map-modal').classList.add('flex');
+    const modal = document.getElementById('map-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
     mapZoom = 1;
-    setTimeout(applyMapZoom, 30);
+    mapPanX = 0;
+    mapPanY = 0;
+    setTimeout(() => {
+        applyMapTransform();
+        setupMapDragging();
+    }, 30);
 }
 
 function hideMap() {
-    document.getElementById('map-modal').classList.remove('flex');
-    document.getElementById('map-modal').classList.add('hidden');
+    const modal = document.getElementById('map-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    mapPanX = 0;
+    mapPanY = 0;
+}
+
+function setupMapDragging() {
+    const content = document.getElementById('map-content');
+    const container = content ? content.parentElement : null;
+    if (!content || !container) return;
+
+    content.onmousedown = function(e) {
+        if (mapZoom <= 1) return;
+        isDragging = true;
+        dragStartX = e.clientX - mapPanX;
+        dragStartY = e.clientY - mapPanY;
+        content.style.cursor = 'grabbing';
+    };
+
+    document.onmousemove = function(e) {
+        if (!isDragging) return;
+        mapPanX = e.clientX - dragStartX;
+        mapPanY = e.clientY - dragStartY;
+        applyMapTransform();
+    };
+
+    document.onmouseup = function() {
+        if (isDragging) {
+            isDragging = false;
+            if (content) content.style.cursor = 'grab';
+        }
+    };
+
+    content.onmouseleave = function() {
+        if (isDragging) {
+            isDragging = false;
+            content.style.cursor = 'grab';
+        }
+    };
+
+    content.style.cursor = (mapZoom > 1) ? 'grab' : 'default';
 }
 
 function zoomMap(delta) {
+    const oldZoom = mapZoom;
     mapZoom = Math.max(0.5, Math.min(4, mapZoom + delta));
-    applyMapZoom();
-}
-
-function applyMapZoom() {
-    const content = document.getElementById('map-content');
-    const levelEl = document.getElementById('zoom-level');
-    if (content) content.style.transform = `scale(${mapZoom})`;
-    if (levelEl) levelEl.textContent = Math.round(mapZoom * 100) + '%';
+    if (oldZoom !== mapZoom) {
+        mapPanX *= (mapZoom / oldZoom);
+        mapPanY *= (mapZoom / oldZoom);
+    }
+    applyMapTransform();
 }
 
 function resetMapZoom() {
     mapZoom = 1;
-    applyMapZoom();
+    mapPanX = 0;
+    mapPanY = 0;
+    applyMapTransform();
 }
 
 function showInventory() {
@@ -655,12 +736,13 @@ function showInventory() {
         const qty = item.quantity || 1;
         const isConsumable = item.type === 'consumable';
         const icon = isConsumable ? 'fa-flask' : (item.name.toLowerCase().includes('sword') ? 'fa-sword' : 'fa-shield-alt');
+        const greenClass = item.name.includes('Mail') ? 'border-l-4 border-emerald-500' : '';
         
-        const row = `<div class="item-row flex justify-between bg-zinc-800 p-3 rounded-2xl mb-2">
+        const row = `<div class="item-row flex justify-between bg-zinc-800 p-3 rounded-2xl mb-2 ${greenClass}">
             <div class="flex items-center gap-3">
                 <i class="fas ${icon} text-amber-400 w-5"></i>
                 <div>
-                    <b>${item.name}</b>${qty > 1 ? ` <span class="text-xs bg-zinc-700 px-1.5 rounded">x${qty}</span>` : ''}
+                    <b class="${item.name.includes('Mail') ? 'text-emerald-400' : ''}">${item.name}</b>${qty > 1 ? ` <span class="text-xs bg-zinc-700 px-1.5 rounded">x${qty}</span>` : ''}
                     <div class="text-xs text-zinc-400">${item.desc || ''}</div>
                 </div>
             </div>
@@ -701,7 +783,6 @@ function dropItem(i) {
         state.inventory.splice(i, 1);
         log(`You dropped ${item.name}.`);
         updateAll();
-        // Reopen inventory
         setTimeout(showInventory, 80);
     }
 }
@@ -714,17 +795,28 @@ function useItem(i) {
         log(`Used ${item.name}.`);
         if ((item.quantity||1) > 1) item.quantity--; else state.inventory.splice(i,1);
     } else {
-        const isWeapon = item.type === 'weapon' || item.name.toLowerCase().includes('sword');
-        if (isWeapon) {
-            if (p.weapon && p.weapon.name !== "Rusty Sword") addToInventory(p.weapon);
-            p.weapon = {name: item.name, bonus: item.bonus};
+        if (!item.type && item.name.toLowerCase().includes('armor') || item.type === 'armor') {
+            if (p.armor && p.armor.name !== "Cloth Tunic") {
+                if (p.armor.healthBonus) { p.maxHp -= p.armor.healthBonus; p.hp = Math.min(p.hp, p.maxHp); }
+                if (p.armor.manaBonus) { p.maxMp -= p.armor.manaBonus; p.mp = Math.min(p.mp, p.maxMp); }
+                if (p.armor.bonus) p.def = Math.max(0, p.def - p.armor.bonus);
+                addToInventory(p.armor);
+            }
+            p.armor = {name: item.name, bonus: item.bonus || 0, healthBonus: item.healthBonus || 0, manaBonus: item.manaBonus || 0};
+            if (item.healthBonus) { p.maxHp += item.healthBonus; p.hp += item.healthBonus; }
+            if (item.manaBonus) { p.maxMp += item.manaBonus; p.mp += item.manaBonus; }
+            if (item.bonus) p.def += item.bonus;
             log(`Equipped <b>${item.name}</b>.`);
+            state.inventory.splice(i,1);
         } else {
-            if (p.armor && p.armor.name !== "Cloth Tunic") addToInventory(p.armor);
-            p.armor = {name: item.name, bonus: item.bonus};
-            log(`Equipped <b>${item.name}</b>.`);
+            const isWeapon = item.type === 'weapon' || item.name.toLowerCase().includes('sword');
+            if (isWeapon) {
+                if (p.weapon && p.weapon.name !== "Rusty Sword") addToInventory(p.weapon);
+                p.weapon = {name: item.name, bonus: item.bonus};
+                log(`Equipped <b>${item.name}</b>.`);
+            }
+            state.inventory.splice(i,1);
         }
-        state.inventory.splice(i,1);
     }
     updateAll(); save();
 }
@@ -733,7 +825,6 @@ function showStats() {
     const p = state.player;
     const weaponDmg = Math.floor(6 + p.str * 1.1 + (p.weapon.bonus || 0));
     const spellPower = Math.floor(12 + p.int * 1.7);
-    const healPower = Math.floor(20 + p.int * 1.5);
     
     const div = document.createElement('div');
     div.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
@@ -748,7 +839,6 @@ function showStats() {
                 <button onclick="this.closest('.fixed').remove()" class="text-3xl leading-none text-zinc-400 hover:text-white">&times;</button>
             </div>
 
-            <!-- Core Stats -->
             <div class="grid grid-cols-3 gap-3 mb-6">
                 <div class="stat-card bg-zinc-800 rounded-2xl p-4 text-center">
                     <div class="text-red-400"><i class="fas fa-fist-raised text-xl"></i></div>
@@ -770,7 +860,6 @@ function showStats() {
                 </div>
             </div>
 
-            <!-- Equipment -->
             <div class="mb-5">
                 <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2 px-1">EQUIPMENT</div>
                 <div class="bg-zinc-800 rounded-2xl p-4 space-y-3 text-sm">
@@ -780,12 +869,11 @@ function showStats() {
                     </div>
                     <div class="flex justify-between">
                         <span class="text-zinc-400">Armor</span> 
-                        <span class="font-medium">${p.armor.name} <span class="text-amber-400">(+${p.armor.bonus})</span></span>
+                        <span class="font-medium">${p.armor.name} <span class="text-amber-400">(+${p.armor.bonus || 0})</span></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Magic -->
             <div class="mb-5">
                 <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2 px-1">KNOWN MAGIC</div>
                 <div class="bg-zinc-800 rounded-2xl p-4 text-sm space-y-1.5">
@@ -798,17 +886,12 @@ function showStats() {
                 </div>
             </div>
 
-            <!-- Combat Preview -->
             <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2 px-1">COMBAT PREVIEW</div>
             <div class="bg-zinc-800/70 rounded-2xl p-4 text-sm grid grid-cols-2 gap-y-2">
                 <div class="text-zinc-400">Sword Damage</div>
-                <div class="font-mono text-right">~${weaponDmg} <span class="text-xs text-zinc-500">per hit</span></div>
+                <div class="font-mono text-right">~${weaponDmg}</div>
                 <div class="text-zinc-400">Firebolt Power</div>
                 <div class="font-mono text-right text-blue-400">~${spellPower}</div>
-                <div class="text-zinc-400">Ice Shard Power</div>
-                <div class="font-mono text-right text-cyan-400">~${Math.floor(22 + p.int * 2.1)}</div>
-                <div class="text-zinc-400">Heal Amount</div>
-                <div class="font-mono text-right text-emerald-400">~${healPower}</div>
             </div>
 
             <div class="mt-6 text-center">
