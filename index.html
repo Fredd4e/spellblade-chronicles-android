@@ -13,11 +13,12 @@
     .rpg-btn { transition: all 0.1s ease; }
     .rpg-btn:active { transform: scale(0.96); }
     .map-location { transition: all 0.2s ease; }
-    .map-location:hover { transform: translateY(-2px); }
+    .map-path { height: 3px; background: linear-gradient(to right, #166534, #4ade80); }
 </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
 <div class="game-container min-h-screen p-4">
+    <!-- Header -->
     <div class="flex justify-between items-center mb-4">
         <div>
             <h1 class="fantasy-title text-3xl text-amber-400">Spellblade Chronicles</h1>
@@ -28,6 +29,7 @@
         </div>
     </div>
 
+    <!-- Stats -->
     <div class="bg-zinc-900 rounded-2xl p-4 mb-4">
         <div class="grid grid-cols-2 gap-4">
             <div>
@@ -46,6 +48,7 @@
         </div>
     </div>
 
+    <!-- Story Log -->
     <div class="bg-zinc-900 rounded-2xl mb-4 overflow-hidden">
         <div onclick="toggleStory()" class="px-4 py-2.5 flex justify-between items-center cursor-pointer bg-zinc-950">
             <span class="font-semibold flex items-center gap-2"><i class="fas fa-book text-amber-400"></i> Story Log</span>
@@ -56,6 +59,7 @@
         </div>
     </div>
 
+    <!-- Location Header -->
     <div class="flex justify-between items-center mb-2 px-1">
         <div class="font-bold flex items-center gap-2"><i class="fas fa-map-marker-alt text-emerald-400"></i> <span id="location">Eldoria Village Square</span></div>
         <div class="flex gap-2">
@@ -66,8 +70,10 @@
         </div>
     </div>
 
+    <!-- Actions -->
     <div id="actions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
+    <!-- Combat -->
     <div id="combat" class="hidden bg-zinc-900 border border-red-900 rounded-2xl p-4 mb-4">
         <div class="flex justify-between mb-3">
             <div><span class="text-red-400 font-bold" id="enemy-name"></span><br><span class="text-xs">HP: <span id="enemy-hp"></span>/<span id="enemy-max"></span></span></div>
@@ -89,38 +95,67 @@
     </div>
 </div>
 
+<!-- Interactive Map Modal -->
 <div id="map-modal" class="hidden fixed inset-0 bg-black/70 flex items-end justify-center" onclick="if(event.target.id==='map-modal') hideMap()">
     <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full max-w-md rounded-t-3xl p-5">
-        <div class="flex justify-between mb-4 items-center">
-            <h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-map text-emerald-400"></i> World Map</h3>
-            <button onclick="hideMap()" class="text-xl">&times;</button>
+        <div class="flex justify-between mb-3">
+            <h3 class="font-bold text-lg">World Map</h3>
+            <button onclick="hideMap()" class="text-2xl">&times;</button>
         </div>
-        <div class="space-y-3">
-            <div onclick="travel('village')" class="map-location p-4 bg-zinc-800 hover:bg-emerald-900/40 rounded-2xl cursor-pointer border border-zinc-700 flex gap-4 items-center">
-                <i class="fas fa-home text-3xl text-emerald-400"></i>
-                <div class="flex-1"><div class="font-bold flex items-center gap-2">Eldoria Village <span class="text-xs px-2 py-0.5 bg-emerald-900 rounded-full">Safe</span></div><div class="text-xs text-zinc-400">Talk to Elder • Shop • Rest</div></div>
+
+        <!-- Visual Map Layout -->
+        <div class="relative py-4">
+            <!-- Village (Bottom) -->
+            <div onclick="travel('village')" class="map-location flex items-center gap-3 p-3 bg-emerald-900/30 border border-emerald-600 rounded-2xl cursor-pointer mb-3 ${state?.location === 'village' ? 'ring-2 ring-emerald-400' : ''}">
+                <i class="fas fa-home text-2xl text-emerald-400 w-8"></i>
+                <div>
+                    <div class="font-bold">Eldoria Village</div>
+                    <div class="text-xs text-emerald-300">Your home • Safe zone</div>
+                </div>
             </div>
-            <div onclick="travel('woods')" class="map-location p-4 bg-zinc-800 hover:bg-emerald-900/40 rounded-2xl cursor-pointer border border-zinc-700 flex gap-4 items-center">
-                <i class="fas fa-tree text-3xl text-emerald-400"></i>
-                <div class="flex-1"><div class="font-bold">Whispering Woods</div><div class="text-xs text-zinc-400">Dangerous • Combat • Loot</div></div>
+
+            <!-- Path -->
+            <div class="flex justify-center"><div class="map-path w-1 h-8 rounded"></div></div>
+
+            <!-- Woods (Middle) -->
+            <div onclick="travel('woods')" class="map-location flex items-center gap-3 p-3 bg-orange-900/30 border border-orange-600 rounded-2xl cursor-pointer my-1 ${state?.location === 'woods' ? 'ring-2 ring-orange-400' : ''}">
+                <i class="fas fa-tree text-2xl text-orange-400 w-8"></i>
+                <div>
+                    <div class="font-bold">Whispering Woods</div>
+                    <div class="text-xs text-orange-300">Dangerous • Combat & Loot</div>
+                </div>
             </div>
-            <div onclick="travel('ruins')" class="map-location p-4 bg-zinc-800 hover:bg-emerald-900/40 rounded-2xl cursor-pointer border border-zinc-700 flex gap-4 items-center">
-                <i class="fas fa-archway text-3xl text-emerald-400"></i>
-                <div class="flex-1"><div class="font-bold flex items-center gap-2">Ruined Temple <span class="text-xs px-2 py-0.5 bg-amber-900 text-amber-300 rounded-full">Lv 3+</span></div><div class="text-xs text-zinc-400">Stronger enemies • Secrets</div></div>
+
+            <!-- Path -->
+            <div class="flex justify-center"><div class="map-path w-1 h-8 rounded"></div></div>
+
+            <!-- Ruins (Top) -->
+            <div onclick="travel('ruins')" class="map-location flex items-center gap-3 p-3 bg-purple-900/30 border border-purple-600 rounded-2xl cursor-pointer mt-1 ${state?.location === 'ruins' ? 'ring-2 ring-purple-400' : ''}">
+                <i class="fas fa-archway text-2xl text-purple-400 w-8"></i>
+                <div>
+                    <div class="font-bold">Ruined Temple <span class="text-xs text-purple-300">(Level 3+)</span></div>
+                    <div class="text-xs text-purple-300">Ancient danger • Strong enemies</div>
+                </div>
             </div>
         </div>
-        <div class="mt-4 text-xs text-center text-zinc-500">Tap location to travel</div>
+
+        <div class="text-xs text-center text-zinc-500 mt-2">Tap a location to travel there</div>
     </div>
 </div>
 
+<!-- Shop Modal -->
 <div id="shop-modal" class="hidden fixed inset-0 bg-black/70 flex items-end justify-center" onclick="if(event.target.id==='shop-modal') hideShop()">
     <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full max-w-md rounded-t-3xl p-5">
-        <div class="flex justify-between mb-4"><h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-store text-emerald-400"></i> Merchant's Shop</h3><button onclick="hideShop()" class="text-xl">&times;</button></div>
-        <div id="shop-list" class="space-y-3 max-h-[55vh] overflow-auto"></div>
-        <div class="mt-4 text-xs text-zinc-500 text-center">Your gold: <span id="shop-gold" class="font-bold text-yellow-400"></span></div>
+        <div class="flex justify-between mb-4">
+            <h3 class="font-bold text-lg"><i class="fas fa-store text-emerald-400"></i> Merchant's Shop</h3>
+            <button onclick="hideShop()" class="text-xl">&times;</button>
+        </div>
+        <div id="shop-list" class="space-y-3"></div>
+        <div class="mt-3 text-center text-sm">Gold: <span id="shop-gold" class="font-bold text-yellow-400"></span></div>
     </div>
 </div>
 
+<!-- Inventory -->
 <div id="inv-modal" class="hidden fixed inset-0 bg-black/70 flex items-end justify-center" onclick="if(event.target.id==='inv-modal') hideInv()">
     <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full max-w-md rounded-t-3xl p-5">
         <div class="flex justify-between mb-3"><h3 class="font-bold">Inventory</h3><button onclick="hideInv()" class="text-xl">&times;</button></div>
@@ -128,57 +163,415 @@
     </div>
 </div>
 
+<!-- Item Detail -->
 <div id="item-detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center" onclick="if(event.target.id==='item-detail-modal') hideItemDetail()">
     <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full max-w-sm mx-4 rounded-3xl p-6">
-        <div class="flex justify-between mb-4"><h3 id="item-detail-name" class="font-bold text-xl"></h3><button onclick="hideItemDetail()" class="text-xl">&times;</button></div>
-        <div id="item-detail-body" class="text-sm text-zinc-300 space-y-3"></div>
-        <button onclick="hideItemDetail()" class="mt-6 w-full py-2.5 bg-zinc-800 rounded-2xl">Close</button>
+        <div class="flex justify-between mb-3"><h3 id="item-detail-name" class="font-bold text-xl"></h3><button onclick="hideItemDetail()" class="text-xl">&times;</button></div>
+        <div id="item-detail-body" class="text-sm"></div>
+        <button onclick="hideItemDetail()" class="mt-5 w-full py-2 bg-zinc-800 rounded-2xl">Close</button>
     </div>
 </div>
 
 <script>
-let state = { player: { name: "Aether", level: 1, hp: 50, maxHp: 50, mp: 20, maxMp: 20, xp: 0, gold: 20, str: 5, int: 5, def: 3, weapon: {name: "Rusty Sword", bonus: 3}, armor: {name: "Cloth Tunic", bonus: 1}, spells: ["Firebolt"] }, inventory: [{id:1, name:"Health Potion", type:"consumable", bonus:30, desc:"Restores 30 HP", flavor: "A simple red potion that mends wounds."}], location: "village", locationName: "Eldoria Village Square", quest: 0, kills: 0, inCombat: false, enemy: null, story: [] };
+let state = {
+    player: { name: "Aether", level: 1, hp: 50, maxHp: 50, mp: 20, maxMp: 20, xp: 0, gold: 20, str: 5, int: 5, def: 3,
+        weapon: {name: "Rusty Sword", bonus: 3}, armor: {name: "Cloth Tunic", bonus: 1}, spells: ["Firebolt"] },
+    inventory: [{id:1, name:"Health Potion", type:"consumable", bonus:30, desc:"Restores 30 HP", flavor:"A simple red potion."}],
+    location: "village", locationName: "Eldoria Village Square",
+    quest: 0, kills: 0, inCombat: false, enemy: null, story: [], lastLootTime: 0
+};
+
 let storyOpen = true;
 
-function log(msg, important = false) { state.story.push({msg, important, time: new Date().toISOString()}); if (state.story.length > 14) state.story.shift(); renderStory(); }
-function renderStory() { const el = document.getElementById('story'); el.innerHTML = ''; state.story.slice(-9).forEach(s => { const p = document.createElement('p'); p.className = `mb-1.5 text-sm ${s.important ? 'text-amber-300 font-medium' : 'text-zinc-300'}`; p.innerHTML = s.msg; el.appendChild(p); }); }
-function updateStats() { const p = state.player; document.getElementById('player-name').textContent = p.name; document.getElementById('level').textContent = p.level; document.getElementById('hp').textContent = `${p.hp}/${p.maxHp}`; document.getElementById('mp').textContent = `${p.mp}/${p.maxMp}`; document.getElementById('xp').textContent = `${p.xp}/${p.level * 80 + 20}`; document.getElementById('gold').textContent = p.gold; document.getElementById('str').textContent = p.str; document.getElementById('int').textContent = p.int; document.getElementById('def').textContent = p.def; document.getElementById('hp-bar').style.width = Math.max(0, (p.hp / p.maxHp) * 100) + '%'; document.getElementById('mp-bar').style.width = Math.max(0, (p.mp / p.maxMp) * 100) + '%'; document.getElementById('location').textContent = state.locationName; }
-function toggleStory() { const box = document.getElementById('story-box'); const icon = document.getElementById('story-icon'); storyOpen = !storyOpen; box.style.display = storyOpen ? 'block' : 'none'; icon.className = storyOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down'; }
-function renderActions() { const container = document.getElementById('actions'); container.innerHTML = ''; if (state.inCombat) { document.getElementById('combat').classList.remove('hidden'); return; } document.getElementById('combat').classList.add('hidden'); let html = ''; const loc = state.location; if (loc === 'village') { html += `<button onclick="talkElder()" class="rpg-btn bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-user-tie text-amber-400 w-5"></i><span>Talk to Elder</span></button>`; html += `<button onclick="openShop()" class="rpg-btn bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-store text-emerald-400 w-5"></i><span>Visit Merchant</span></button>`; html += `<button onclick="restInn()" class="rpg-btn bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-bed text-blue-400 w-5"></i><span>Rest at Inn (8g)</span></button>`; html += `<button onclick="showMap()" class="rpg-btn bg-emerald-900/70 hover:bg-emerald-800 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-map w-5"></i><span>World Map</span></button>`; } else if (loc === 'woods') { html += `<button onclick="startFight()" class="rpg-btn bg-red-900/70 hover:bg-red-800 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-skull w-5"></i><span>Look for Combat</span></button>`; html += `<button onclick="searchLoot()" class="rpg-btn bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-search text-amber-400 w-5"></i><span>Search for Loot</span></button>`; html += `<button onclick="travel('village')" class="rpg-btn bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-home text-emerald-400 w-5"></i><span>Return to Village</span></button>`; html += `<button onclick="showMap()" class="rpg-btn bg-emerald-900/70 hover:bg-emerald-800 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-map w-5"></i><span>World Map</span></button>`; } else if (loc === 'ruins') { html += `<button onclick="exploreRuins()" class="rpg-btn bg-purple-900/70 hover:bg-purple-800 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-archway w-5"></i><span>Explore Temple</span></button>`; html += `<button onclick="travel('woods')" class="rpg-btn bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-arrow-left text-emerald-400 w-5"></i><span>Back to Woods</span></button>`; html += `<button onclick="showMap()" class="rpg-btn bg-emerald-900/70 hover:bg-emerald-800 p-3 rounded-2xl text-left flex gap-3 items-center"><i class="fas fa-map w-5"></i><span>World Map</span></button>`; } container.innerHTML = html; }
+function log(msg, important = false) {
+    state.story.push({msg, important});
+    if (state.story.length > 14) state.story.shift();
+    renderStory();
+}
+
+function renderStory() {
+    const el = document.getElementById('story');
+    el.innerHTML = '';
+    state.story.slice(-8).forEach(s => {
+        const p = document.createElement('p');
+        p.className = `mb-1 text-sm ${s.important ? 'text-amber-300' : ''}`;
+        p.innerHTML = s.msg;
+        el.appendChild(p);
+    });
+}
+
+function updateStats() {
+    const p = state.player;
+    document.getElementById('player-name').textContent = p.name;
+    document.getElementById('level').textContent = p.level;
+    document.getElementById('hp').textContent = `${p.hp}/${p.maxHp}`;
+    document.getElementById('mp').textContent = `${p.mp}/${p.maxMp}`;
+    document.getElementById('xp').textContent = `${p.xp}/${p.level*80+20}`;
+    document.getElementById('gold').textContent = p.gold;
+    document.getElementById('str').textContent = p.str;
+    document.getElementById('int').textContent = p.int;
+    document.getElementById('def').textContent = p.def;
+    document.getElementById('hp-bar').style.width = Math.max(0,(p.hp/p.maxHp)*100)+'%';
+    document.getElementById('mp-bar').style.width = Math.max(0,(p.mp/p.maxMp)*100)+'%';
+    document.getElementById('location').textContent = state.locationName;
+}
+
+function toggleStory() {
+    const box = document.getElementById('story-box');
+    storyOpen = !storyOpen;
+    box.style.display = storyOpen ? '' : 'none';
+    document.getElementById('story-icon').className = storyOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+}
+
+function renderActions() {
+    const c = document.getElementById('actions');
+    c.innerHTML = '';
+    if (state.inCombat) { document.getElementById('combat').classList.remove('hidden'); return; }
+    document.getElementById('combat').classList.add('hidden');
+
+    let html = '';
+    const loc = state.location;
+    if (loc === 'village') {
+        html += `<button onclick="talkElder()" class="rpg-btn bg-zinc-800 p-3 rounded-2xl flex gap-3"><i class="fas fa-user-tie text-amber-400"></i> <span>Talk to Elder</span></button>`;
+        html += `<button onclick="openShop()" class="rpg-btn bg-zinc-800 p-3 rounded-2xl flex gap-3"><i class="fas fa-store text-emerald-400"></i> <span>Visit Merchant</span></button>`;
+        html += `<button onclick="restInn()" class="rpg-btn bg-zinc-800 p-3 rounded-2xl flex gap-3"><i class="fas fa-bed text-blue-400"></i> <span>Rest at Inn</span></button>`;
+        html += `<button onclick="showMap()" class="rpg-btn bg-emerald-900/70 p-3 rounded-2xl flex gap-3"><i class="fas fa-map"></i> <span>Map</span></button>`;
+    } else if (loc === 'woods') {
+        html += `<button onclick="startFight()" class="rpg-btn bg-red-900/70 p-3 rounded-2xl flex gap-3"><i class="fas fa-skull"></i> <span>Look for Combat</span></button>`;
+        html += `<button onclick="searchLoot()" class="rpg-btn bg-zinc-800 p-3 rounded-2xl flex gap-3"><i class="fas fa-search text-amber-400"></i> <span>Search for Loot</span></button>`;
+        html += `<button onclick="travel('village')" class="rpg-btn bg-zinc-800 p-3 rounded-2xl flex gap-3"><i class="fas fa-home text-emerald-400"></i> <span>Return to Village</span></button>`;
+        html += `<button onclick="showMap()" class="rpg-btn bg-emerald-900/70 p-3 rounded-2xl flex gap-3"><i class="fas fa-map"></i> <span>Map</span></button>`;
+    } else if (loc === 'ruins') {
+        html += `<button onclick="exploreRuins()" class="rpg-btn bg-purple-900/70 p-3 rounded-2xl flex gap-3"><i class="fas fa-archway"></i> <span>Explore Temple</span></button>`;
+        html += `<button onclick="travel('woods')" class="rpg-btn bg-zinc-800 p-3 rounded-2xl flex gap-3"><i class="fas fa-arrow-left text-emerald-400"></i> <span>Back to Woods</span></button>`;
+        html += `<button onclick="showMap()" class="rpg-btn bg-emerald-900/70 p-3 rounded-2xl flex gap-3"><i class="fas fa-map"></i> <span>Map</span></button>`;
+    }
+    c.innerHTML = html;
+}
+
 function updateAll() { updateStats(); renderActions(); renderStory(); }
-function talkElder() { if (state.quest === 0) { log("<b>Elder:</b> 'Clear threats in the Whispering Woods.'", true); state.quest = 1; } else if (state.quest === 1 && state.kills >= 3) { state.player.gold += 40; state.quest = 2; log("<b>Elder:</b> 'Well done! Gold and access to the Ruined Temple.'", true); } else { log("<b>Elder:</b> 'Continue clearing the woods.'"); } updateAll(); save(); }
-function openShop() { const modal = document.getElementById('shop-modal'); const list = document.getElementById('shop-list'); list.innerHTML = ''; document.getElementById('shop-gold').textContent = state.player.gold; const shopItems = [ {name: "Iron Sword", type: "weapon", bonus: 7, price: 55, flavor: "A sturdy blade forged in the village smithy.", stat: "+7 Damage"}, {name: "Leather Armor", type: "armor", bonus: 4, price: 45, flavor: "Light but reliable protection.", stat: "+4 Defense"}, {name: "Health Potion", type: "consumable", bonus: 30, price: 12, flavor: "A red liquid that closes wounds quickly.", stat: "Restores 30 HP"}, {name: "Mana Potion", type: "consumable", bonus: 15, price: 15, flavor: "Restores magical energy.", stat: "Restores 15 MP"}, {name: "Spell Tome: Heal", type: "spell", bonus: 0, price: 80, flavor: "An ancient scroll containing the Heal spell.", stat: "Learn Heal spell"} ]; shopItems.forEach(item => { const canBuy = state.player.gold >= item.price; const div = document.createElement('div'); div.className = `p-3 rounded-2xl flex justify-between items-center ${canBuy ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-zinc-950 opacity-60'}`; div.innerHTML = `<div><div class="font-medium">${item.name}</div><div class="text-xs text-zinc-400">${item.stat} • ${item.flavor}</div></div><div class="text-right"><div class="text-emerald-400 font-bold">${item.price}g</div></div>`; if (canBuy) { div.onclick = () => buyItem(item, div); } list.appendChild(div); }); modal.classList.remove('hidden'); modal.classList.add('flex'); }
-function buyItem(item) { if (state.player.gold < item.price) return; state.player.gold -= item.price; if (item.type === "weapon") { state.player.weapon = {name: item.name, bonus: item.bonus}; log(`Equipped <b>${item.name}</b>!`); } else if (item.type === "armor") { state.player.armor = {name: item.name, bonus: item.bonus}; log(`Equipped <b>${item.name}</b>!`); } else if (item.type === "spell") { if (!state.player.spells.includes("Heal")) { state.player.spells.push("Heal"); log("Learned Heal spell!"); } } else { state.inventory.push({id: Date.now(), name: item.name, type: "consumable", bonus: item.bonus, desc: item.stat, flavor: item.flavor}); log(`Bought <b>${item.name}</b>.`); } hideShop(); updateAll(); save(); }
-function hideShop() { document.getElementById('shop-modal').classList.remove('flex'); document.getElementById('shop-modal').classList.add('hidden'); }
-function restInn() { if (state.player.gold < 8) { log("Not enough gold."); return; } state.player.gold -= 8; state.player.hp = state.player.maxHp; state.player.mp = state.player.maxMp; log("Recovered at the inn.", true); updateAll(); save(); }
-function startFight() { const enemies = [{name:"Goblin Scout", hp:22, maxHp:22, atk:7, def:2, xp:18, gold:6},{name:"Forest Wolf", hp:32, maxHp:32, atk:8, def:3, xp:26, gold:9},{name:"Shadow Imp", hp:18, maxHp:18, atk:6, def:1, xp:15, gold:7}]; state.enemy = enemies[Math.floor(Math.random()*enemies.length)]; state.inCombat = true; document.getElementById('combat-log').innerHTML = ''; addCombatLog(`Encountered <b>${state.enemy.name}</b>!`, true); updateCombatUI(); renderActions(); }
-function searchLoot() { if (Math.random() < 0.55) { const g = Math.floor(Math.random()*9)+5; state.player.gold += g; log(`Found <b>${g} Gold</b>!`, true); } else log("Nothing found."); updateAll(); }
-function exploreRuins() { if (Math.random() > 0.4) { state.enemy = {name:"Skeleton Warrior", hp:45, maxHp:45, atk:9, def:5, xp:35, gold:18}; state.inCombat = true; document.getElementById('combat-log').innerHTML=''; addCombatLog(`A <b>${state.enemy.name}</b> rises!`, true); updateCombatUI(); } else { state.player.gold += 25; state.inventory.push({id:Date.now(),name:"Health Potion",type:"consumable",bonus:30,desc:"Restores 30 HP",flavor:"A simple healing draught."}); log("Found chest with gold and potion!"); } updateAll(); }
-function addCombatLog(msg, imp=false) { const logEl = document.getElementById('combat-log'); const d = document.createElement('div'); d.className = imp ? 'text-amber-300' : ''; d.innerHTML = msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
-function updateCombatUI() { const e = state.enemy; if(!e) return; document.getElementById('enemy-name').innerHTML = e.name; document.getElementById('enemy-hp').innerHTML = e.hp; document.getElementById('enemy-max').innerHTML = e.maxHp; document.getElementById('enemy-atk').innerHTML = e.atk; document.getElementById('spell-btn').textContent = state.player.spells.includes("Heal") ? "Cast Spell" : "Cast Firebolt"; }
-function swordAttack() { if(!state.inCombat || !state.enemy) return; const e = state.enemy; const p = state.player; let dmg = Math.max(4, Math.floor(5 + p.str*1.1 + (p.weapon.bonus||0) - e.def*0.7 + Math.random()*4)); e.hp -= dmg; addCombatLog(`Sword hit for <span class="text-red-400">${dmg}</span>.`); if(e.hp <= 0) return victory(); enemyAttack(); updateCombatUI(); }
-function castSpell() { if(!state.inCombat || !state.enemy) return; const p = state.player; const e = state.enemy; if(p.mp < 8){ addCombatLog("Not enough MP!"); return; } p.mp -= 8; let dmg = Math.floor(10 + p.int*1.5); e.hp -= dmg; addCombatLog(`Spell deals <span class="text-blue-400">${dmg}</span>!`); if(e.hp <= 0) return victory(); enemyAttack(); updateCombatUI(); }
-function defend() { if(!state.inCombat) return; let dmg = Math.max(1, Math.floor(state.enemy.atk * 0.6 - state.player.def)); state.player.hp = Math.max(0, state.player.hp - dmg); addCombatLog(`Defended, took <span class="text-red-400">${dmg}</span>.`); if(state.player.hp <= 0) death(); else enemyAttack(); updateCombatUI(); }
-function flee() { if(Math.random() < 0.5){ log("Fled successfully."); endCombat(); } else { addCombatLog("Flee failed!"); enemyAttack(); updateCombatUI(); } }
-function enemyAttack() { const e = state.enemy; const p = state.player; let dmg = Math.max(1, Math.floor(e.atk - p.def*0.8 + Math.random()*3)); p.hp -= dmg; addCombatLog(`${e.name} hits for <span class="text-red-400">${dmg}</span>.`); if(p.hp <= 0) death(); }
-function victory() { const e = state.enemy; const p = state.player; p.gold += e.gold||8; p.xp += e.xp||20; state.kills++; addCombatLog(`<b class="text-emerald-400">Victory!</b>`, true); log(`Defeated ${e.name}!`, true); if(Math.random()<0.5){ state.inventory.push({id:Date.now(),name:"Health Potion",type:"consumable",bonus:30,desc:"Restores 30 HP",flavor:"A simple healing draught."}); log("Looted Health Potion!"); } if(state.kills===4 && !p.spells.includes("Heal")){ p.spells.push("Heal"); log("Learned Heal spell!", true); } levelUpCheck(); endCombat(); }
-function death() { addCombatLog("<b class='text-red-500'>You fell...</b>"); setTimeout(()=>{ log("Woke up in the village...", true); state.player.hp = Math.floor(state.player.maxHp*0.4); state.location="village"; state.locationName="Eldoria Village Square"; endCombat(); },1400); }
-function levelUpCheck() { const p = state.player; if(p.xp >= p.level*80 + 20){ p.level++; p.xp=0; p.maxHp+=8; p.hp=p.maxHp; p.maxMp+=4; p.mp=p.maxMp; p.str++;p.int++;p.def++; log(`<b>LEVEL UP!</b> Level ${p.level}!`, true); } }
-function endCombat() { state.inCombat=false; state.enemy=null; document.getElementById('combat').classList.add('hidden'); renderActions(); updateAll(); save(); }
-function travel(dest) { hideMap(); if(dest==='village'){ state.location='village'; state.locationName='Eldoria Village Square'; log('Returned to village.'); } else if(dest==='woods'){ state.location='woods'; state.locationName='Whispering Woods'; log('Entered the woods...'); } else if(dest==='ruins'){ if(state.player.level<3){log('Need Level 3+'); return;} state.location='ruins'; state.locationName='Ruined Temple'; log('Entered the Ruined Temple.'); } updateAll(); }
+
+function talkElder() {
+    if (state.quest === 0) { log("Elder: Clear the woods.", true); state.quest = 1; }
+    else if (state.quest === 1 && state.kills >= 3) { state.player.gold += 40; state.quest = 2; log("Elder gave you gold and temple access.", true); }
+    else log("Elder: Keep hunting in the woods.");
+    updateAll(); save();
+}
+
+function openShop() {
+    const modal = document.getElementById('shop-modal');
+    const list = document.getElementById('shop-list');
+    list.innerHTML = '';
+    document.getElementById('shop-gold').textContent = state.player.gold;
+
+    const items = [
+        {name:"Iron Sword", type:"weapon", bonus:7, price:55, flavor:"A solid blade from the local smith.", effect:"+7 Damage"},
+        {name:"Leather Armor", type:"armor", bonus:4, price:45, flavor:"Decent protection for a beginner.", effect:"+4 Defense"},
+        {name:"Health Potion", type:"consumable", bonus:30, price:12, flavor:"Heals minor wounds quickly.", effect:"Restores 30 HP"},
+        {name:"Mana Potion", type:"consumable", bonus:15, price:15, flavor:"Restores magical energy.", effect:"Restores 15 MP"},
+        {name:"Spell Tome: Heal", type:"spell", bonus:0, price:80, flavor:"Teaches the Heal spell.", effect:"Learn Heal"}
+    ];
+
+    items.forEach(item => {
+        const can = state.player.gold >= item.price;
+        const d = document.createElement('div');
+        d.className = `p-3 rounded-2xl flex justify-between ${can ? 'bg-zinc-800 active:bg-zinc-700' : 'bg-zinc-950 opacity-50'}`;
+        d.innerHTML = `<div><div class="font-medium">${item.name}</div><div class="text-xs text-zinc-400">${item.effect}</div></div><div class="text-emerald-400 font-bold text-right">${item.price}g</div>`;
+        if (can) d.onclick = () => buyFromShop(item);
+        list.appendChild(d);
+    });
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+}
+
+function buyFromShop(item) {
+    if (state.player.gold < item.price) return;
+    state.player.gold -= item.price;
+
+    if (item.type === "weapon") {
+        state.player.weapon = {name: item.name, bonus: item.bonus};
+        log(`Equipped <b>${item.name}</b>!`);
+    } else if (item.type === "armor") {
+        state.player.armor = {name: item.name, bonus: item.bonus};
+        log(`Equipped <b>${item.name}</b>!`);
+    } else if (item.type === "spell") {
+        if (!state.player.spells.includes("Heal")) state.player.spells.push("Heal");
+        log("Learned the Heal spell!");
+    } else {
+        // Consumable - properly add to inventory
+        state.inventory.push({
+            id: Date.now(),
+            name: item.name,
+            type: "consumable",
+            bonus: item.bonus,
+            desc: item.effect,
+            flavor: item.flavor
+        });
+        log(`Added <b>${item.name}</b> to inventory.`);
+    }
+    hideShop();
+    updateAll();
+    save();
+}
+
+function hideShop() {
+    document.getElementById('shop-modal').classList.remove('flex');
+    document.getElementById('shop-modal').classList.add('hidden');
+}
+
+function restInn() {
+    if (state.player.gold < 8) return log("Not enough gold.");
+    state.player.gold -= 8;
+    state.player.hp = state.player.maxHp;
+    state.player.mp = state.player.maxMp;
+    log("Fully recovered at the inn.", true);
+    updateAll(); save();
+}
+
+function startFight() {
+    const pool = [{name:"Goblin Scout",hp:22,maxHp:22,atk:7,def:2,xp:18,gold:6},{name:"Forest Wolf",hp:32,maxHp:32,atk:8,def:3,xp:26,gold:9}];
+    state.enemy = pool[Math.floor(Math.random()*pool.length)];
+    state.inCombat = true;
+    document.getElementById('combat-log').innerHTML = '';
+    addCombatLog(`You face a <b>${state.enemy.name}</b>!`);
+    updateCombatUI();
+    renderActions();
+}
+
+function searchLoot() {
+    const now = Date.now();
+    if (now - state.lastLootTime < 45000) {
+        return log("You need to wait a bit before searching again.");
+    }
+    state.lastLootTime = now;
+
+    if (Math.random() < 0.25) {
+        // Danger! Weak encounter
+        log("While searching you disturbed something...");
+        setTimeout(() => {
+            state.enemy = {name:"Angry Wolf Cub", hp:15, maxHp:15, atk:5, def:1, xp:12, gold:4};
+            state.inCombat = true;
+            document.getElementById('combat-log').innerHTML = '';
+            addCombatLog("A small but aggressive creature attacks!");
+            updateCombatUI();
+            renderActions();
+        }, 600);
+        return;
+    }
+
+    if (Math.random() < 0.65) {
+        const g = Math.floor(Math.random() * 8) + 6;
+        state.player.gold += g;
+        log(`You found <b>${g} Gold</b> hidden nearby!`, true);
+    } else {
+        log("Your search turned up nothing of value.");
+    }
+    updateAll();
+}
+
+function exploreRuins() {
+    if (Math.random() > 0.35) {
+        state.enemy = {name:"Skeleton", hp:45, maxHp:45, atk:9, def:5, xp:35, gold:18};
+        state.inCombat = true;
+        document.getElementById('combat-log').innerHTML = '';
+        addCombatLog("A skeleton lurches toward you!");
+        updateCombatUI();
+    } else {
+        state.player.gold += 30;
+        state.inventory.push({id:Date.now(), name:"Health Potion", type:"consumable", bonus:30, desc:"Restores 30 HP", flavor:"Found in the ruins."});
+        log("You found gold and a potion in the ruins!");
+    }
+    updateAll();
+}
+
+function addCombatLog(msg) {
+    const el = document.getElementById('combat-log');
+    const d = document.createElement('div');
+    d.innerHTML = msg;
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+}
+
+function updateCombatUI() {
+    const e = state.enemy;
+    document.getElementById('enemy-name').innerHTML = e.name;
+    document.getElementById('enemy-hp').innerHTML = e.hp;
+    document.getElementById('enemy-max').innerHTML = e.maxHp;
+    document.getElementById('enemy-atk').innerHTML = e.atk;
+}
+
+function swordAttack() { /* simplified combat for stability */ 
+    if(!state.inCombat) return;
+    const e = state.enemy; const p = state.player;
+    let dmg = Math.max(3, Math.floor(4 + p.str + (p.weapon.bonus||0) - e.def + Math.random()*3));
+    e.hp -= dmg;
+    addCombatLog(`You deal <span class="text-red-400">${dmg}</span> damage.`);
+    if (e.hp <= 0) return endCombatWin();
+    // enemy hits back
+    let edmg = Math.max(1, Math.floor(e.atk - p.def + Math.random()*2));
+    p.hp -= edmg;
+    addCombatLog(`${e.name} hits you for <span class="text-red-400">${edmg}</span>.`);
+    if (p.hp <= 0) { log("You were defeated...", true); setTimeout(() => { p.hp = Math.floor(p.maxHp*0.4); state.location='village'; endCombat(); }, 1200); }
+    updateCombatUI();
+}
+
+function castSpell() {
+    if(!state.inCombat) return;
+    const p = state.player; const e = state.enemy;
+    if (p.mp < 8) return addCombatLog("Not enough MP!");
+    p.mp -= 8;
+    let dmg = Math.floor(9 + p.int * 1.3);
+    e.hp -= dmg;
+    addCombatLog(`Spell hits for <span class="text-blue-400">${dmg}</span>!`);
+    if (e.hp <= 0) return endCombatWin();
+    // enemy counter
+    let edmg = Math.max(1, Math.floor(e.atk - p.def));
+    p.hp -= edmg;
+    addCombatLog(`${e.name} hits back for ${edmg}.`);
+    if (p.hp <= 0) { log("You fell...", true); setTimeout(()=>{p.hp=Math.floor(p.maxHp*0.4); state.location='village'; endCombat();},1200); }
+    updateCombatUI();
+}
+
+function defend() {
+    if(!state.inCombat) return;
+    let dmg = Math.max(1, Math.floor(state.enemy.atk * 0.5));
+    state.player.hp -= dmg;
+    addCombatLog(`You defend and take ${dmg} damage.`);
+    if (state.player.hp <= 0) { log("You were defeated.", true); setTimeout(()=>{state.player.hp = Math.floor(state.player.maxHp*0.4); state.location='village'; endCombat();},1200); }
+    updateCombatUI();
+}
+
+function flee() {
+    if (Math.random() < 0.5) { log("You escaped!"); endCombat(); }
+    else { addCombatLog("Couldn't escape!"); }
+}
+
+function endCombatWin() {
+    const e = state.enemy; const p = state.player;
+    p.gold += e.gold || 8; p.xp += e.xp || 20; state.kills++;
+    addCombatLog(`<b class="text-emerald-400">Victory!</b>`);
+    log(`Defeated ${e.name}!`, true);
+    if (Math.random() < 0.4) {
+        state.inventory.push({id:Date.now(), name:"Health Potion", type:"consumable", bonus:30, desc:"Restores 30 HP", flavor:"Looted from enemy."});
+        log("You looted a Health Potion!");
+    }
+    if (state.kills === 4 && !p.spells.includes("Heal")) { p.spells.push("Heal"); log("Learned Heal spell!", true); }
+    if (p.xp >= p.level * 80 + 20) { p.level++; p.xp=0; p.maxHp+=8; p.hp=p.maxHp; p.str++; p.int++; p.def++; log(`<b>LEVEL UP!</b> Level ${p.level}!`, true); }
+    endCombat();
+}
+
+function endCombat() {
+    state.inCombat = false;
+    state.enemy = null;
+    document.getElementById('combat').classList.add('hidden');
+    renderActions();
+    updateAll();
+    save();
+}
+
+function travel(dest) {
+    hideMap();
+    if (dest === 'village') { state.location = 'village'; state.locationName = 'Eldoria Village Square'; }
+    else if (dest === 'woods') { state.location = 'woods'; state.locationName = 'Whispering Woods'; }
+    else if (dest === 'ruins') { if (state.player.level < 3) return log('Reach Level 3 first.'); state.location = 'ruins'; state.locationName = 'Ruined Temple'; }
+    updateAll();
+}
+
 function showMap() { document.getElementById('map-modal').classList.remove('hidden'); document.getElementById('map-modal').classList.add('flex'); }
 function hideMap() { document.getElementById('map-modal').classList.remove('flex'); document.getElementById('map-modal').classList.add('hidden'); }
-function showInventory() { const modal = document.getElementById('inv-modal'); const list = document.getElementById('inv-list'); list.innerHTML = ''; if(state.inventory.length===0){ list.innerHTML = '<div class="p-4 text-center text-zinc-400">Empty</div>'; } state.inventory.forEach((item, i) => { const div = document.createElement('div'); div.className = 'flex justify-between items-center bg-zinc-800 p-3 rounded-2xl mb-2'; div.innerHTML = `<div class="flex-1"><b>${item.name}</b><div class="text-xs text-zinc-400">${item.desc||''}</div></div>`; const actions = document.createElement('div'); actions.className = 'flex gap-1'; const useBtn = document.createElement('button'); useBtn.className = 'px-3 py-1 text-xs bg-amber-600 rounded-xl'; useBtn.textContent = item.type==='consumable'?'Use':'Equip'; useBtn.onclick = () => useItem(i); const infoBtn = document.createElement('button'); infoBtn.className = 'px-2 py-1 text-xs bg-zinc-700 rounded-xl'; infoBtn.innerHTML = '<i class="fas fa-info-circle"></i>'; infoBtn.onclick = () => showItemDetail(item); actions.appendChild(useBtn); actions.appendChild(infoBtn); div.appendChild(actions); list.appendChild(div); }); modal.classList.remove('hidden'); modal.classList.add('flex'); }
-function useItem(index) { const item = state.inventory[index]; const p = state.player; if(item.type === 'consumable'){ if(item.name.includes('Health')) p.hp = Math.min(p.maxHp, p.hp + item.bonus); else if(item.name.includes('Mana')) p.mp = Math.min(p.maxMp, p.mp + item.bonus); log(`Used ${item.name}.`); state.inventory.splice(index,1); } else { const isWeapon = item.name.includes('Sword')||item.name.includes('Blade'); const equipped = isWeapon ? p.weapon : p.armor; if(equipped) state.inventory.push({...equipped, type:isWeapon?'weapon':'armor', bonus:equipped.bonus}); if(isWeapon) p.weapon={name:item.name, bonus:item.bonus}; else p.armor={name:item.name, bonus:item.bonus}; log(`Equipped ${item.name}.`); state.inventory.splice(index,1); } hideInv(); updateAll(); save(); }
-function showItemDetail(item) { hideInv(); document.getElementById('item-detail-name').textContent = item.name; const body = document.getElementById('item-detail-body'); body.innerHTML = `<div><span class="text-zinc-400">Type:</span> ${item.type||'Equipment'}</div><div><span class="text-zinc-400">Effect:</span> ${item.desc||item.stat||'Unknown'}</div><div class="pt-2 text-zinc-300">${item.flavor || 'No additional information.'}</div>`; document.getElementById('item-detail-modal').classList.remove('hidden'); document.getElementById('item-detail-modal').classList.add('flex'); }
-function hideItemDetail() { document.getElementById('item-detail-modal').classList.remove('flex'); document.getElementById('item-detail-modal').classList.add('hidden'); setTimeout(()=>{ document.getElementById('inv-modal').classList.remove('hidden'); document.getElementById('inv-modal').classList.add('flex'); },50); }
+
+function showInventory() {
+    const modal = document.getElementById('inv-modal');
+    const list = document.getElementById('inv-list');
+    list.innerHTML = '';
+    if (state.inventory.length === 0) { list.innerHTML = '<div class="p-4 text-center text-zinc-400">Your bag is empty.</div>'; }
+    state.inventory.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between bg-zinc-800 p-3 rounded-2xl mb-2 items-center';
+        div.innerHTML = `<div><b>${item.name}</b><div class="text-xs text-zinc-400">${item.desc || ''}</div></div>`;
+        const btns = document.createElement('div');
+        btns.className = 'flex gap-1';
+        const use = document.createElement('button');
+        use.className = 'px-3 py-1 text-xs bg-amber-600 rounded-xl';
+        use.textContent = item.type === 'consumable' ? 'Use' : 'Equip';
+        use.onclick = () => useItem(i);
+        const info = document.createElement('button');
+        info.className = 'px-2 py-1 text-xs bg-zinc-700 rounded-xl';
+        info.innerHTML = '<i class="fas fa-info"></i>';
+        info.onclick = () => showItemDetail(item);
+        btns.appendChild(use); btns.appendChild(info);
+        div.appendChild(btns);
+        list.appendChild(div);
+    });
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+}
+
+function useItem(i) {
+    const item = state.inventory[i];
+    const p = state.player;
+    if (item.type === 'consumable') {
+        if (item.name.includes('Health')) p.hp = Math.min(p.maxHp, p.hp + item.bonus);
+        log(`Used ${item.name}.`);
+        state.inventory.splice(i,1);
+    } else {
+        // equip
+        const isWeapon = item.name.toLowerCase().includes('sword');
+        if (isWeapon) p.weapon = {name: item.name, bonus: item.bonus};
+        else p.armor = {name: item.name, bonus: item.bonus};
+        log(`Equipped ${item.name}.`);
+        state.inventory.splice(i,1);
+    }
+    hideInv();
+    updateAll();
+    save();
+}
+
+function showItemDetail(item) {
+    hideInv();
+    document.getElementById('item-detail-name').textContent = item.name;
+    document.getElementById('item-detail-body').innerHTML = `<div class="mb-2"><b>Effect:</b> ${item.desc || 'Unknown'}</div><div class="text-zinc-300">${item.flavor || 'No description.'}</div>`;
+    document.getElementById('item-detail-modal').classList.remove('hidden'); document.getElementById('item-detail-modal').classList.add('flex');
+}
+
+function hideItemDetail() {
+    document.getElementById('item-detail-modal').classList.remove('flex');
+    document.getElementById('item-detail-modal').classList.add('hidden');
+    setTimeout(showInventory, 80);
+}
+
 function hideInv() { document.getElementById('inv-modal').classList.remove('flex'); document.getElementById('inv-modal').classList.add('hidden'); }
-function showStats() { const p = state.player; const html = `<div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onclick="this.remove()"><div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 p-6 rounded-3xl w-full max-w-[320px] mx-4"><h3 class="text-xl font-bold mb-4 text-center">${p.name}</h3><div class="space-y-2 text-sm"><div>Level <b>${p.level}</b></div><div>XP: ${p.xp} / ${p.level*80+20}</div><div class="pt-2 border-t border-zinc-700"></div><div>STR <b class="text-red-400">${p.str}</b> • INT <b class="text-blue-400">${p.int}</b> • DEF <b class="text-emerald-400">${p.def}</b></div><div class="pt-2 border-t border-zinc-700"></div><div>Weapon: ${p.weapon.name} (+${p.weapon.bonus})</div><div>Armor: ${p.armor.name} (+${p.armor.bonus})</div><div>Spells: ${p.spells.join(', ')}</div></div><button onclick="this.closest('.fixed').remove()" class="mt-6 w-full py-2.5 bg-zinc-800 rounded-2xl">Close</button></div></div>`; document.body.insertAdjacentHTML('beforeend', html); }
-function renameCharacter() { const name = prompt("What is your name?", state.player.name); if(name && name.trim()){ state.player.name = name.trim(); log(`You are now known as <b>${state.player.name}</b>.`, true); updateAll(); save(); } }
-function exportLogs() { const data = { timestamp: new Date().toISOString(), player: state.player, location: state.locationName, quest: state.quest, kills: state.kills, inventory: state.inventory, storyLog: state.story }; const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `spellblade-debug-${Date.now()}.json`; a.click(); URL.revokeObjectURL(url); log("Debug log exported."); }
-function save() { localStorage.setItem('spellblade_v2', JSON.stringify(state)); }
-function load() { const saved = localStorage.getItem('spellblade_v2'); if(saved){ try{ Object.assign(state, JSON.parse(saved)); }catch(e){} } }
-function init() { load(); if(state.story.length === 0){ log(`You are <b>${state.player.name}</b>, a young Spellblade.`, true); log("Speak with the Elder to begin your quest."); } document.getElementById('combat').classList.add('hidden'); updateAll(); console.log('%c[Spellblade] Ready with debug export + improved shop.', 'color:#22c55e'); }
+
+function showStats() {
+    const p = state.player;
+    const html = `<div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onclick="this.remove()"><div class="bg-zinc-900 p-6 rounded-3xl max-w-xs mx-4"><h3 class="font-bold text-center mb-3">${p.name}</h3><div class="text-sm space-y-1"><div>Level ${p.level}</div><div>STR ${p.str} • INT ${p.int} • DEF ${p.def}</div><div>Weapon: ${p.weapon.name}</div><div>Armor: ${p.armor.name}</div></div><button onclick="this.closest('.fixed').remove()" class="mt-5 w-full py-2 bg-zinc-800 rounded-2xl">Close</button></div></div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function renameCharacter() {
+    const n = prompt("Your name:", state.player.name);
+    if (n) { state.player.name = n; log(`You are now <b>${n}</b>.`, true); updateAll(); }
+}
+
+function exportLogs() {
+    const data = {time: new Date().toISOString(), player: state.player, location: state.locationName, inventory: state.inventory, story: state.story};
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}));
+    a.download = `spellblade-log-${Date.now()}.json`;
+    a.click();
+}
+
+function save() { localStorage.setItem('spellblade_final', JSON.stringify(state)); }
+
+function load() { const s = localStorage.getItem('spellblade_final'); if (s) { try { Object.assign(state, JSON.parse(s)); } catch(e){} } }
+
+function init() {
+    load();
+    if (state.story.length === 0) {
+        log(`You are <b>${state.player.name}</b>.`, true);
+        log("Talk to the Elder to start your journey.");
+    }
+    document.getElementById('combat').classList.add('hidden');
+    updateAll();
+}
 window.onload = init;
 </script>
 </body>
