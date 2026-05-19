@@ -64,7 +64,8 @@ const Lore = {
     travel: {
         village: "You return to the safety of Eldoria Village.",
         woods: "You step into the dark Whispering Woods...",
-        ruins: "You enter the ancient and ominous Ruined Temple."
+        ruins: "You enter the ancient and ominous Ruined Temple.",
+        church: "You enter the peaceful sanctuary of the Eldoria Church. Candlelight flickers against stained glass windows depicting ancient heroes."
     },
 
     combatStart: {
@@ -105,6 +106,12 @@ const Lore = {
             bgImage: "assets/backgrounds/ruins.jpg",
             caption: "Ancient stones hum with forgotten power.",
             flavor: "Broken pillars and faded runes. Something old and hungry stirs below."
+        },
+        church: {
+            name: "Eldoria Church",
+            bgImage: "assets/backgrounds/village.jpg",
+            caption: "A serene stone church with stained glass windows and soft candlelight.",
+            flavor: "Incense and quiet prayers fill the air. A sanctuary where even Spellblades may find renewal and guidance."
         }
     },
 
@@ -127,6 +134,15 @@ const Lore = {
             hasQuests: false,
             hasShop: true,
             type: "merchant"
+        },
+        sarah: {
+            name: "Sarah",
+            portrait: "assets/npcs/nun.jpg",
+            title: "Priest of Eldoria",
+            age: 22,
+            hasQuests: false,
+            hasShop: false,
+            type: "priest"
         }
         // Easy to add more NPCs
     },
