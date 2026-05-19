@@ -1,1 +1,1 @@
-Combat + UI + Quests with fixes (work in progress - expanding)
+Expanded game.js with more complete combat, quest, and UI functions including all previous fixes.
