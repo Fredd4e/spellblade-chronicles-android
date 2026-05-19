@@ -315,28 +315,28 @@ function renderActions() {
             let html = `<div class="mb-2 px-1"><span class="font-semibold text-emerald-400">Village Square</span></div>`;
             html += `<div class="grid grid-cols-2 gap-3">`;
             
-            html += `<div onclick="goToEldersHut()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center">
-                <i class="fas fa-user-tie text-amber-400 text-2xl mb-2"></i>
-                <div class="font-bold">Elder's Hut</div>
-                <div class="text-xs text-zinc-400">Talk to the village elder</div>
+            html += `<div onclick="goToEldersHut()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl cursor-pointer flex flex-col items-center text-center">
+                <i class="fas fa-user-tie text-amber-400 text-xl mb-1"></i>
+                <div class="font-bold text-sm">Elder's Hut</div>
+                <div class="text-[10px] text-zinc-400">Talk to the village elder</div>
             </div>`;
             
-            html += `<div onclick="goToChapel()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center border border-emerald-900/50">
-                <i class="fas fa-church text-emerald-400 text-2xl mb-2"></i>
-                <div class="font-bold text-emerald-300">Chapel</div>
-                <div class="text-xs text-zinc-400">Speak with Magontha the Priest</div>
+            html += `<div onclick="goToChapel()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl cursor-pointer flex flex-col items-center text-center border border-emerald-900/50">
+                <i class="fas fa-church text-emerald-400 text-xl mb-1"></i>
+                <div class="font-bold text-sm text-emerald-300">Chapel</div>
+                <div class="text-[10px] text-zinc-400">Speak with Magontha</div>
             </div>`;
             
-            html += `<div onclick="goToMarket()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center">
-                <i class="fas fa-store text-emerald-400 text-2xl mb-2"></i>
-                <div class="font-bold">Market</div>
-                <div class="text-xs text-zinc-400">Visit the merchant</div>
+            html += `<div onclick="goToMarket()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl cursor-pointer flex flex-col items-center text-center">
+                <i class="fas fa-store text-emerald-400 text-xl mb-1"></i>
+                <div class="font-bold text-sm">Market</div>
+                <div class="text-[10px] text-zinc-400">Visit the merchant</div>
             </div>`;
             
-            html += `<div onclick="goToInn()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center">
-                <i class="fas fa-bed text-blue-400 text-2xl mb-2"></i>
-                <div class="font-bold">The Inn</div>
-                <div class="text-xs text-zinc-400">Rest and recover</div>
+            html += `<div onclick="goToInn()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl cursor-pointer flex flex-col items-center text-center">
+                <i class="fas fa-bed text-blue-400 text-xl mb-1"></i>
+                <div class="font-bold text-sm">The Inn</div>
+                <div class="text-[10px] text-zinc-400">Rest and recover</div>
             </div>`;
             
             html += `</div>`;
@@ -415,11 +415,11 @@ function startDialogue(npc) {
         textEl.innerHTML = "'Welcome, child of the light. The shadows grow stronger, but faith can still guide us.'";
         
         choicesEl.innerHTML = `
-            <div onclick="talkToMagontha(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+            <div onclick="talkToMagonthaKeepOpen()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
                 <i class="fas fa-pray text-emerald-400 w-5"></i> <span>Ask for healing</span>
             </div>
             <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Leave the chapel</span>
+                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
             </div>
         `;
     } 
@@ -446,6 +446,9 @@ function startDialogue(npc) {
             <div onclick="openShop(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
                 <i class="fas fa-store text-emerald-400 w-5"></i> <span>Browse Shop</span>
             </div>
+            <div onclick="showMerchantQuests()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-scroll text-amber-400 w-5"></i> <span>Quests</span>
+            </div>
             <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
                 <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
             </div>
@@ -457,6 +460,55 @@ function closeDialogue() {
     const modal = document.getElementById('dialogue-modal');
     modal.classList.remove('flex');
     modal.classList.add('hidden');
+    updateAll();
+}
+
+function talkToMagonthaKeepOpen() {
+    log("<b>Magontha:</b> 'May the light protect you.'", true);
+    if (state.player.hp < state.player.maxHp * 0.6) {
+        const healAmount = Math.floor(state.player.maxHp * 0.25);
+        state.player.hp = Math.min(state.player.maxHp, state.player.hp + healAmount);
+        log(`Magontha restores <span class="text-emerald-400">${healAmount} HP</span>.`, true);
+    } else {
+        log("You feel a gentle warmth from her prayer.");
+    }
+    updateAll();
+    save();
+    setTimeout(() => {
+        startDialogue('magontha');
+    }, 600);
+}
+
+function showMerchantQuests() {
+    const modal = document.getElementById('dialogue-modal');
+    const textEl = document.getElementById('dialogue-text');
+    const choicesEl = document.getElementById('dialogue-choices');
+
+    textEl.innerHTML = "'I have a task for someone brave. There's a corrupted wolf causing trouble in the woods. Bring me proof you've dealt with it.'";
+    
+    choicesEl.innerHTML = `
+        <div onclick="acceptMerchantQuest(); closeDialogue();" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+            <i class="fas fa-check text-emerald-300 w-5"></i> <span>Accept the quest</span>
+        </div>
+        <div onclick="declineMerchantQuest(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+            <i class="fas fa-times text-red-400 w-5"></i> <span>Decline</span>
+        </div>
+    `;
+}
+
+function acceptMerchantQuest() {
+    if (state.quest < 10) {
+        state.quest = 10;
+        log("<b>Quest accepted:</b> Deal with the corrupted wolf in the woods and bring proof to the merchant.", true);
+    } else {
+        log("You already have an active quest from the merchant.");
+    }
+    updateAll();
+    save();
+}
+
+function declineMerchantQuest() {
+    log("'Fair enough. Come back if you change your mind.'");
     updateAll();
 }
 
@@ -725,7 +777,6 @@ function updateCombatUI() {
     document.getElementById('enemy-hp').innerHTML = e.hp;
     document.getElementById('enemy-max').innerHTML = e.maxHp;
     
-    // Update enemy HP bar
     const hpPercent = Math.max(0, (e.hp / e.maxHp) * 100);
     const hpBar = document.getElementById('enemy-hp-bar');
     if (hpBar) hpBar.style.width = hpPercent + '%';
