@@ -17,6 +17,7 @@ function travel(newLoc) {
 }
 
 function talkToElder() { 
+    // Legacy function - dialogue now handled in ui.js startDialogue. Kept for compatibility.
     if (state.inCombat) return; 
     const elder = (window.Lore && Lore.elder) ? Lore.elder : {};
     let dialogue = elder.default || ["<b>Elder:</b> 'Return when you have slain more of the foul creatures in the woods.'"];
@@ -43,7 +44,18 @@ function exploreVillage() { if (state.inCombat) return; log('You explore the vil
 
 function exploreWoods() { if (state.inCombat) return; log('Venturing into the woods...'); if (Math.random() < 0.7) startCombat('beast'); else searchLoot(true); }
 
-function exploreRuins() { if (state.inCombat) return; log('Entering the ruins...'); if (Math.random() < 0.75) startCombat('skeleton'); else searchLoot(true); }
+function exploreRuins() { 
+    if (state.inCombat) return; 
+    log('Entering the ancient temple depths...'); 
+    // Temple quest progress
+    if (state.quest >= 2) {
+        state.templeProgress = (state.templeProgress || 0) + 1;
+        if (state.templeProgress === 1) {
+            log('You uncover faded runes and feel an ancient presence watching you...', true);
+        }
+    }
+    if (Math.random() < 0.75) startCombat('skeleton'); else searchLoot(true); 
+}
 
 function exploreChurch() { 
     if (state.inCombat) return; 
