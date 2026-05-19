@@ -24,6 +24,7 @@ let state = {
     locationName: "Eldoria Village Square",
     quest: 0,
     kills: 0,
+    templeProgress: 0,
     inCombat: false,
     enemy: null,
     story: [],
@@ -92,6 +93,11 @@ function load() {
                 const nameMap = { village: "Eldoria Village Square", woods: "Whispering Woods", ruins: "Ruined Temple" };
                 state.locationName = nameMap[state.location] || state.location;
             }
+
+            // Repair quest related
+            if (typeof state.quest !== 'number') state.quest = 0;
+            if (typeof state.kills !== 'number') state.kills = 0;
+            if (typeof state.templeProgress !== 'number') state.templeProgress = 0;
 
             recalculateMaxStats();
         } catch (e) {
