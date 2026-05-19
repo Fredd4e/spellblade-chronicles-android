@@ -73,7 +73,7 @@
     <!-- Area Portrait -->
     <div id="area-portrait" class="hidden mb-4">
         <div class="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700">
-            <img id="area-portrait-img" class="w-full h-48 object-cover" alt="Current area">
+            <img id="area-portrait-img" class="w-full h-48 object-cover" alt="Current area" style="display:none;">
             <div class="p-3 text-sm" id="area-portrait-caption"></div>
         </div>
     </div>
@@ -112,14 +112,84 @@
     </div>
 </div>
 
-<!-- Modals (Intro, Map, Dialogue) -->
-<!-- (I truncated some modal HTML for length. Let me know if you want the full version with all modals included) -->
+<!-- Intro Modal -->
+<div id="intro-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-6 hidden">
+    <div class="bg-zinc-900 rounded-3xl max-w-md w-full p-7 border border-zinc-700">
+        <h2 class="fantasy-title text-2xl text-amber-400 mb-4 text-center" id="intro-title"></h2>
+        <div id="intro-text" class="space-y-3 text-sm text-zinc-300 mb-6"></div>
+        <div class="flex gap-3">
+            <button onclick="startGame(true)" class="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-2xl font-bold">Begin Adventure</button>
+            <button onclick="startGame(false)" class="flex-1 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-2xl">Skip Intro</button>
+        </div>
+    </div>
+</div>
+
+<!-- Map Modal -->
+<div id="map-modal" onclick="if(event.target.id==='map-modal') hideMap()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[620px] p-5">
+        <div class="flex justify-between mb-3 items-center">
+            <div>
+                <h3 class="font-bold text-xl">World Map</h3>
+                <p class="text-xs text-zinc-400">Eldoria Region</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-zinc-800 rounded-full text-sm overflow-hidden border border-zinc-700">
+                    <button onclick="zoomMap(-0.2)" class="px-3 py-1 hover:bg-zinc-700 active:bg-zinc-600 transition-colors" title="Zoom out">-</button>
+                    <div class="px-2 text-xs text-zinc-400 select-none" id="zoom-level">100%</div>
+                    <button onclick="zoomMap(0.2)" class="px-3 py-1 hover:bg-zinc-700 active:bg-zinc-600 transition-colors" title="Zoom in">+</button>
+                </div>
+                <button onclick="resetMapZoom()" class="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-full border border-zinc-700">Reset</button>
+                <button onclick="hideMap()" class="text-2xl leading-none ml-1">&times;</button>
+            </div>
+        </div>
+
+        <div class="relative w-full rounded-2xl overflow-hidden border-2 border-emerald-600 shadow-xl" style="aspect-ratio: 16 / 10;">
+            <div id="map-content" style="position:absolute; top:0; left:0; width:100%; height:100%; transform-origin:center center; transition:transform 0.2s ease; cursor: grab;">
+                <img src="assets/map/world-map.jpg" class="w-full h-full object-cover" alt="World Map">
+
+                <!-- Location Icons -->
+                <div onclick="travel('village'); hideMap();" class="absolute cursor-pointer" style="bottom: 38%; left: 28%;">
+                    <div class="w-11 h-11 flex items-center justify-center bg-emerald-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
+                        <i class="fas fa-home text-white text-xl"></i>
+                    </div>
+                    <div class="text-[10px] font-bold text-center text-emerald-300 mt-0.5 drop-shadow">Village</div>
+                </div>
+
+                <div onclick="travel('woods'); hideMap();" class="absolute cursor-pointer" style="bottom: 32%; left: 48%;">
+                    <div class="w-11 h-11 flex items-center justify-center bg-orange-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
+                        <i class="fas fa-tree text-white text-xl"></i>
+                    </div>
+                    <div class="text-[10px] font-bold text-center text-orange-300 mt-0.5 drop-shadow">Woods</div>
+                </div>
+
+                <div onclick="travel('ruins'); hideMap();" class="absolute cursor-pointer" style="top: 22%; right: 18%;">
+                    <div class="w-11 h-11 flex items-center justify-center bg-purple-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
+                        <i class="fas fa-archway text-white text-xl"></i>
+                    </div>
+                    <div class="text-[10px] font-bold text-center text-purple-300 mt-0.5 drop-shadow">Temple</div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-zinc-400 mt-3">Tap a location to travel • Use +/- to zoom • Drag to pan when zoomed in</p>
+    </div>
+</div>
 
 <script src="lore.js"></script>
 <script src="core.js"></script>
 <script src="game.js"></script>
 <script>
 window.onload = init;
+
+// Optional: toggle story from core if needed
+function toggleStory() {
+    const box = document.getElementById('story-box');
+    if (!box) return;
+    window.storyOpen = !window.storyOpen;
+    box.style.display = window.storyOpen ? '' : 'none';
+    const icon = document.getElementById('story-icon');
+    if (icon) icon.className = window.storyOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+}
 </script>
 </body>
 </html>
