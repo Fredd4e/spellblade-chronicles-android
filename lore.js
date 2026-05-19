@@ -20,7 +20,7 @@ const Lore = {
             description: "Slay at least three corrupted beasts in the Whispering Woods to help the Elder understand the darkness.",
             objective: "Defeat 3 corrupted beasts",
             target: 3,
-            progressKey: "kills", // state.kills tracks it currently
+            progressKey: "kills",
             reward: { gold: 40, xp: 30 },
             stages: {
                 offer: "Dark creatures have begun crawling from the Whispering Woods. They were once men and beasts of these lands. I need someone brave enough to slay at least <b>three</b> of them...",
@@ -34,7 +34,7 @@ const Lore = {
             description: "Investigate the Ruined Temple and uncover what ancient evil stirs within.",
             objective: "Explore the depths of the Ruined Temple",
             target: 1,
-            progressKey: "templeProgress", // future: track in state
+            progressKey: "templeProgress",
             reward: { gold: 75, item: "Ancient Relic" },
             stages: {
                 offer: "The Ruined Temple was once a place of great power. Now it festers. Whatever sleeps there must not wake. Will you investigate?",
@@ -42,7 +42,6 @@ const Lore = {
                 completed: "You have braved the temple. The answers you seek may change everything..."
             }
         }
-        // Easy to add more quests here
     },
 
     elder: {
@@ -88,7 +87,6 @@ const Lore = {
         "Leather Armor": "Light but reliable protection."
     },
 
-    // Area metadata for backgrounds, descriptions, future actions
     areas: {
         village: {
             name: "Eldoria Village Square",
@@ -110,21 +108,29 @@ const Lore = {
         }
     },
 
+    // Enhanced NPC data with age, conditional options, and type
     npcs: {
         elder: {
             name: "Village Elder",
             portrait: "assets/npcs/elder.jpg",
-            title: "Keeper of Eldoria's Wards"
+            title: "Keeper of Eldoria's Wards",
+            age: 67,
+            hasQuests: true,
+            hasShop: false,
+            type: "elder"
         },
         merchant: {
             name: "Merchant",
             portrait: "assets/npcs/merchant.jpg",
-            title: "Travelling Trader"
+            title: "Travelling Trader",
+            age: 42,
+            hasQuests: false,
+            hasShop: true,
+            type: "merchant"
         }
-        // Add more NPCs easily here for future dialogues
+        // Easy to add more NPCs
     },
 
-    // Game data for modularity
     spells: {
         "Firebolt": { cost: 5, baseDmg: 8, scaling: 1.5, desc: "Hurls a bolt of fire at the enemy." },
         "Ice Shard": { cost: 8, baseDmg: 12, scaling: 1.8, desc: "Launches sharp shards of ice." },
@@ -141,5 +147,4 @@ const Lore = {
     ]
 };
 
-// Make available globally
 window.Lore = Lore;
