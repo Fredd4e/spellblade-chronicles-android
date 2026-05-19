@@ -16,6 +16,8 @@
     .item-row:hover { background-color: #27251f; }
     .town-card { transition: all 0.2s ease; }
     .town-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+    .dialogue-choice { transition: all 0.1s ease; }
+    .dialogue-choice:hover { background-color: #27251f; transform: translateX(4px); }
 </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
@@ -62,23 +64,48 @@
         </div>
     </div>
 
+    <!-- Area / NPC Portrait -->
+    <div id="area-portrait" class="hidden mb-4">
+        <div class="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700">
+            <img id="area-portrait-img" class="w-full h-48 object-cover" alt="Current area">
+            <div class="p-3 text-sm" id="area-portrait-caption"></div>
+        </div>
+    </div>
+
     <div id="actions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
-    <!-- Combat -->
+    <!-- Combat - Compact layout -->
     <div id="combat" class="hidden bg-zinc-900 border border-red-900 rounded-2xl p-4 mb-4">
-        <div class="mb-3">
-            <img id="enemy-img" class="w-full h-44 object-cover rounded-xl border border-red-800/60" alt="Enemy" style="display:none;">
-        </div>
-        <div class="flex justify-between text-sm mb-2">
-            <div><span id="enemy-name" class="font-bold text-red-400"></span></div>
-            <div class="text-xs">HP <span id="enemy-hp"></span>/<span id="enemy-max"></span></div>
-        </div>
-        <div id="combat-log" class="bg-black/60 p-2 rounded text-xs h-16 overflow-auto mb-3"></div>
-        <div class="grid grid-cols-2 gap-2 text-sm" id="combat-buttons">
-            <button onclick="swordAttack()" class="bg-red-600 py-2 rounded-xl">Sword Attack</button>
-            <button onclick="castSpell()" class="bg-blue-600 py-2 rounded-xl">Cast Spell</button>
-            <button onclick="defend()" class="bg-zinc-700 py-2 rounded-xl">Defend</button>
-            <button onclick="flee()" class="bg-zinc-700 py-2 rounded-xl">Flee</button>
+        <div class="flex gap-4">
+            <!-- Enemy Portrait (square, ~half width) -->
+            <div class="w-1/2 flex-shrink-0">
+                <img id="enemy-img" class="w-full aspect-square object-cover rounded-xl border border-red-800/60" alt="Enemy" style="display:none;">
+            </div>
+            
+            <!-- Enemy Info -->
+            <div class="flex-1 min-w-0">
+                <div class="mb-2">
+                    <div id="enemy-name" class="font-bold text-red-400 text-lg"></div>
+                    <div class="text-xs text-zinc-400">Enemy</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>HP</span>
+                        <span id="enemy-hp"></span> / <span id="enemy-max"></span>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded"><div id="enemy-hp-bar" class="h-2 bg-red-500 rounded" style="width:100%"></div></div>
+                </div>
+
+                <div id="combat-log" class="bg-black/60 p-2 rounded text-xs h-20 overflow-auto mb-3"></div>
+
+                <div class="grid grid-cols-2 gap-2 text-sm" id="combat-buttons">
+                    <button onclick="swordAttack()" class="bg-red-600 py-2 rounded-xl">Sword Attack</button>
+                    <button onclick="castSpell()" class="bg-blue-600 py-2 rounded-xl">Cast Spell</button>
+                    <button onclick="defend()" class="bg-zinc-700 py-2 rounded-xl">Defend</button>
+                    <button onclick="flee()" class="bg-zinc-700 py-2 rounded-xl">Flee</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -101,10 +128,10 @@
     </div>
 </div>
 
-<!-- Map Modal - Bigger on mobile -->
-<div id="map-modal" onclick="if(event.target.id==='map-modal') hideMap()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
-    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[min(95vw,720px)] p-3 md:p-5">
-        <div class="flex justify-between mb-3 items-center">
+<!-- Map Modal - Bigger window -->
+<div id="map-modal" onclick="if(event.target.id==='map-modal') hideMap()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-2 z-50">
+    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[min(98vw,780px)] p-2 md:p-4">
+        <div class="flex justify-between mb-2 items-center px-2">
             <div>
                 <h3 class="font-bold text-xl">World Map</h3>
                 <p class="text-xs text-zinc-400">Eldoria Region</p>
@@ -124,7 +151,6 @@
             <div id="map-content" style="position:absolute; top:0; left:0; width:100%; height:100%; transform-origin:center center; transition:transform 0.2s ease;">
                 <img src="assets/map/world-map.jpg" class="w-full h-full object-cover" alt="World Map">
 
-                <!-- Location Icons -->
                 <div onclick="travel('village'); hideMap();" class="absolute cursor-pointer" style="bottom: 38%; left: 28%;">
                     <div class="w-11 h-11 flex items-center justify-center bg-emerald-600 rounded-full shadow-lg ring-2 ring-white/70 hover:scale-110 transition-transform">
                         <i class="fas fa-home text-white text-xl"></i>
@@ -148,7 +174,29 @@
             </div>
         </div>
 
-        <p class="text-center text-xs text-zinc-400 mt-2">Tap location to travel • Pinch or +/- to zoom • Drag to pan</p>
+        <p class="text-center text-xs text-zinc-400 mt-2">Tap to travel • Use +/- or pinch to zoom • Drag to pan</p>
+    </div>
+</div>
+
+<!-- Dialogue Modal -->
+<div id="dialogue-modal" class="hidden fixed inset-0 bg-black/80 flex items-end justify-center z-[90] p-2">
+    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-t-3xl w-full max-w-[680px] p-5">
+        <div class="flex justify-between items-center mb-4">
+            <div id="dialogue-npc-name" class="font-bold text-xl text-amber-300"></div>
+            <button onclick="closeDialogue()" class="text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="flex gap-4 mb-4">
+            <!-- NPC Portrait -->
+            <div class="w-28 h-28 flex-shrink-0 rounded-2xl overflow-hidden border border-zinc-700">
+                <img id="dialogue-portrait" class="w-full h-full object-cover" alt="NPC">
+            </div>
+            <div class="flex-1">
+                <div id="dialogue-text" class="text-sm leading-relaxed text-zinc-200"></div>
+            </div>
+        </div>
+
+        <div id="dialogue-choices" class="space-y-2"></div>
     </div>
 </div>
 
@@ -167,7 +215,7 @@ let mapPanY = 0;
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
-let villageSpot = 'square'; // square, chapel, market, elders, inn
+let villageSpot = 'square';
 
 function applyMapTransform() {
     const content = document.getElementById('map-content');
@@ -227,42 +275,64 @@ function toggleStory() {
     document.getElementById('story-icon').className = storyOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
 }
 
+function showAreaPortrait(type, caption) {
+    const container = document.getElementById('area-portrait');
+    const img = document.getElementById('area-portrait-img');
+    const cap = document.getElementById('area-portrait-caption');
+
+    let src = '';
+    if (type === 'chapel') src = 'assets/areas/chapel.jpg';
+    else if (type === 'magontha') src = 'assets/npcs/magontha.jpg';
+    else if (type === 'elder') src = 'assets/npcs/elder.jpg';
+    else if (type === 'merchant') src = 'assets/npcs/merchant.jpg';
+
+    if (src) {
+        img.src = src;
+        cap.innerHTML = caption || '';
+        container.classList.remove('hidden');
+        container.classList.add('block');
+    } else {
+        container.classList.add('hidden');
+    }
+}
+
+function hideAreaPortrait() {
+    const container = document.getElementById('area-portrait');
+    container.classList.add('hidden');
+}
+
 function renderActions() {
     const c = document.getElementById('actions');
     c.innerHTML = '';
     if (state.inCombat) { document.getElementById('combat').classList.remove('hidden'); return; }
     document.getElementById('combat').classList.add('hidden');
+    hideAreaPortrait();
 
     const loc = state.location;
 
     if (loc === 'village') {
         if (villageSpot === 'square') {
-            // Nice town destination cards
             let html = `<div class="mb-2 px-1"><span class="font-semibold text-emerald-400">Village Square</span></div>`;
             html += `<div class="grid grid-cols-2 gap-3">`;
             
-            // Elder's Hut
             html += `<div onclick="goToEldersHut()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center">
                 <i class="fas fa-user-tie text-amber-400 text-2xl mb-2"></i>
                 <div class="font-bold">Elder's Hut</div>
                 <div class="text-xs text-zinc-400">Talk to the village elder</div>
             </div>`;
             
-            // Chapel - Magontha
             html += `<div onclick="goToChapel()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center border border-emerald-900/50">
                 <i class="fas fa-church text-emerald-400 text-2xl mb-2"></i>
                 <div class="font-bold text-emerald-300">Chapel</div>
                 <div class="text-xs text-zinc-400">Speak with Magontha the Priest</div>
             </div>`;
             
-            // Market
             html += `<div onclick="goToMarket()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center">
                 <i class="fas fa-store text-emerald-400 text-2xl mb-2"></i>
                 <div class="font-bold">Market</div>
                 <div class="text-xs text-zinc-400">Visit the merchant</div>
             </div>`;
             
-            // Inn
             html += `<div onclick="goToInn()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center">
                 <i class="fas fa-bed text-blue-400 text-2xl mb-2"></i>
                 <div class="font-bold">The Inn</div>
@@ -270,18 +340,16 @@ function renderActions() {
             </div>`;
             
             html += `</div>`;
-            html += `<button onclick="showMap()" class="mt-3 w-full rpg-btn bg-emerald-900/70 p-3 rounded-2xl flex gap-3 justify-center"><i class="fas fa-map"></i><span>World Map</span></button>`;
             c.innerHTML = html;
         } 
         else if (villageSpot === 'chapel') {
-            // Magontha interaction
-            let html = `<div class="mb-3"><span class="font-semibold text-emerald-400">Chapel • Magontha</span></div>`;
-            html += `<button onclick="talkToMagontha()" class="w-full bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl mb-2 flex items-center gap-3"><i class="fas fa-pray text-emerald-300"></i> <span>Speak with Magontha</span></button>`;
+            let html = `<div class="mb-3"><span class="font-semibold text-emerald-400">Chapel</span></div>`;
+            html += `<button onclick="startDialogue('magontha')" class="w-full bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl mb-2 flex items-center gap-3"><i class="fas fa-pray text-emerald-300"></i> <span>Talk to Magontha</span></button>`;
             html += `<button onclick="backToVillageSquare()" class="w-full bg-zinc-700 hover:bg-zinc-600 p-3 rounded-2xl flex items-center gap-3"><i class="fas fa-arrow-left"></i> <span>Back to Village Square</span></button>`;
             c.innerHTML = html;
+            showAreaPortrait('chapel', 'The small chapel of Eldoria');
         }
         else {
-            // Fallback for other spots
             c.innerHTML = `<button onclick="backToVillageSquare()" class="w-full bg-zinc-700 p-3 rounded-2xl">Back to Village Square</button>`;
         }
     } 
@@ -308,15 +376,16 @@ function updateAll() { updateStats(); renderActions(); renderStory(); }
 
 function backToVillageSquare() {
     villageSpot = 'square';
+    hideAreaPortrait();
     updateAll();
 }
 
 function goToEldersHut() {
-    talkElder();
+    startDialogue('elder');
 }
 
 function goToMarket() {
-    openShop();
+    startDialogue('merchant');
 }
 
 function goToInn() {
@@ -329,17 +398,76 @@ function goToChapel() {
     updateAll();
 }
 
+function startDialogue(npc) {
+    const modal = document.getElementById('dialogue-modal');
+    const nameEl = document.getElementById('dialogue-npc-name');
+    const textEl = document.getElementById('dialogue-text');
+    const choicesEl = document.getElementById('dialogue-choices');
+    const portrait = document.getElementById('dialogue-portrait');
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    choicesEl.innerHTML = '';
+
+    if (npc === 'magontha') {
+        nameEl.textContent = 'Magontha';
+        portrait.src = 'assets/npcs/magontha.jpg';
+        textEl.innerHTML = "'Welcome, child of the light. The shadows grow stronger, but faith can still guide us.'";
+        
+        choicesEl.innerHTML = `
+            <div onclick="talkToMagontha(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-pray text-emerald-400 w-5"></i> <span>Ask for healing</span>
+            </div>
+            <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Leave the chapel</span>
+            </div>
+        `;
+    } 
+    else if (npc === 'elder') {
+        nameEl.textContent = 'Village Elder';
+        portrait.src = 'assets/npcs/elder.jpg';
+        textEl.innerHTML = "'Ah, it's you again. What brings you to my door?'";
+        
+        choicesEl.innerHTML = `
+            <div onclick="talkElder(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-comments text-amber-400 w-5"></i> <span>Talk</span>
+            </div>
+            <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
+            </div>
+        `;
+    } 
+    else if (npc === 'merchant') {
+        nameEl.textContent = 'Merchant';
+        portrait.src = 'assets/npcs/merchant.jpg';
+        textEl.innerHTML = "'Hey there, looking to deal in some damage or armor? What can I do for you?'";
+        
+        choicesEl.innerHTML = `
+            <div onclick="openShop(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-store text-emerald-400 w-5"></i> <span>Browse Shop</span>
+            </div>
+            <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
+            </div>
+        `;
+    }
+}
+
+function closeDialogue() {
+    const modal = document.getElementById('dialogue-modal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    updateAll();
+}
+
 function talkToMagontha() {
-    log("<b>Magontha:</b> 'Welcome, child of the light. The shadows grow stronger, but faith can still guide us.'", true);
-    log("Magontha offers a quiet prayer. You feel a gentle warmth.");
-    
-    // Simple priest interaction
+    log("<b>Magontha:</b> 'May the light protect you.'", true);
     if (state.player.hp < state.player.maxHp * 0.6) {
         const healAmount = Math.floor(state.player.maxHp * 0.25);
         state.player.hp = Math.min(state.player.maxHp, state.player.hp + healAmount);
-        log(`Magontha lays hands on you and restores <span class="text-emerald-400">${healAmount} HP</span>.`, true);
+        log(`Magontha restores <span class="text-emerald-400">${healAmount} HP</span>.`, true);
     } else {
-        log("'Your spirit is strong. Return if you are wounded.'");
+        log("You feel a gentle warmth from her prayer.");
     }
     updateAll();
     save();
@@ -596,6 +724,12 @@ function updateCombatUI() {
     document.getElementById('enemy-name').innerHTML = e.name;
     document.getElementById('enemy-hp').innerHTML = e.hp;
     document.getElementById('enemy-max').innerHTML = e.maxHp;
+    
+    // Update enemy HP bar
+    const hpPercent = Math.max(0, (e.hp / e.maxHp) * 100);
+    const hpBar = document.getElementById('enemy-hp-bar');
+    if (hpBar) hpBar.style.width = hpPercent + '%';
+    
     updateStats();
 }
 
@@ -740,6 +874,7 @@ function travel(dest) {
     else if (dest === 'woods') { state.location = 'woods'; state.locationName = 'Whispering Woods'; }
     else if (dest === 'ruins') { if (state.player.level < 3) return log("You need to be Level 3+."); state.location = 'ruins'; state.locationName = 'Ruined Temple'; }
     villageSpot = 'square';
+    hideAreaPortrait();
     updateAll();
 }
 
@@ -797,7 +932,6 @@ function setupMapDragging() {
         }
     };
 
-    // Touch support
     content.ontouchstart = function(e) {
         if (mapZoom <= 1 || !e.touches || e.touches.length !== 1) return;
         isDragging = true;
