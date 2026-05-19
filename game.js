@@ -424,21 +424,31 @@ function restInn() {
     save();
 }
 
-function talkElder() {
+function talkElder(modalTextEl = null) {
     const e = Lore.elder;
+    let messages = [];
+
     if (state.quest === 0) {
-        e.stage0.forEach(l => log(l, true));
+        messages = e.stage0;
         state.quest = 1;
     } else if (state.quest === 1 && state.kills >= 3) {
-        e.stage1_complete.forEach(l => log(l, true));
+        messages = e.stage1_complete;
         state.player.gold += 40;
         state.quest = 2;
-        log("<b>Quest Updated:</b> The Elder suggests investigating the Ruined Temple.", true);
+        messages.push("<b>Quest Updated:</b> The Elder suggests investigating the Ruined Temple.");
     } else if (state.quest === 2) {
-        e.stage2.forEach(l => log(l, true));
+        messages = e.stage2;
     } else {
-        e.default.forEach(l => log(l));
+        messages = e.default;
     }
+
+    if (modalTextEl) {
+        // Show in dialogue window instead of (or in addition to) global log
+        modalTextEl.innerHTML = messages.map(m => `<p class="mb-1.5">${m}</p>`).join('');
+    } else {
+        messages.forEach(l => log(l, true));
+    }
+
     updateAll();
     save();
 }
@@ -794,6 +804,7 @@ function startGame(skip) {
 }
 
 // ==================== IMPROVED NPC DIALOGUE SYSTEM ====================
+// Dialogue window now properly shows Elder lines from story log + quest interactions
 function openNPCDialogue(npcType) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/80 flex items-end justify-center z-[200]';
@@ -810,19 +821,16 @@ function openNPCDialogue(npcType) {
         portraitSrc = 'assets/npcs/elder.jpg';
         showQuestsBtn = true;
         initialText = 'The Elder regards you with wise, tired eyes. "There is much to discuss, young Spellblade."';
+
         talkAction = () => {
             const textEl = modal.querySelector('#npc-dialogue-text');
-            talkElder();
-            if (textEl) {
-                let summary = 'The Elder listens carefully to your words.';
-                if (state.quest === 1) {
-                    summary = `The hunt continues. You have slain <b>${state.kills}</b> of the corrupted beasts.`;
-                } else if (state.quest === 2) {
-                    summary = 'The shadow in the Ruined Temple grows heavier. Be cautious.';
-                }
-                textEl.innerHTML = `<p class="text-amber-200">${summary}</p>`;
-            }
-            if (typeof renderActions === 'function') renderActions();
+            if (!textEl) return;
+
+            // Use enhanced talkElder that can target the dialogue window
+            talkElder(textEl);
+
+            // Also keep important updates in the global story log for persistence
+            if (typeof renderStory === 'function') renderStory();
         };
     } else if (npcType === 'merchant') {
         npcName = 'Merchant';
@@ -832,7 +840,7 @@ function openNPCDialogue(npcType) {
         talkAction = () => {
             const textEl = modal.querySelector('#npc-dialogue-text');
             if (textEl) {
-                textEl.innerHTML = `<p>"The woods are no place for the unprepared. My goods may keep you alive a little longer."</p>`;
+                textEl.innerHTML = `<p>"The woods are no place for the unprepared. My goods may keep you alive a little longer. Come browse my wares anytime."</p>`;
             }
         };
     }
@@ -948,4 +956,4 @@ function openNPCDialogue(npcType) {
     makeBtn('Goodbye', 'fa-door-open', () => modal.remove(), 'bg-red-900/70 hover:bg-red-800');
 }
 
-console.log("game.js fully loaded - Spellblade Chronicles (fixed)");
+console.log("game.js fully loaded - Spellblade Chronicles (dialogue window now shows Elder lines)");
