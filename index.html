@@ -162,6 +162,11 @@
                 <div class="w-10 h-10 bg-amber-700 rounded-full flex items-center justify-center ring-2 ring-white/70"><i class="fas fa-archway text-white"></i></div>
                 <div class="text-center text-[10px] text-amber-300">Ruins</div>
             </div>
+            <!-- NEW: Church pin -->
+            <div onclick="travel('church'); hideMap();" class="absolute cursor-pointer" style="bottom:28%; left:38%;">
+                <div class="w-9 h-9 bg-amber-600 rounded-full flex items-center justify-center ring-2 ring-white/70"><i class="fas fa-church text-white text-sm"></i></div>
+                <div class="text-center text-[9px] text-amber-300 -mt-0.5">Church</div>
+            </div>
         </div>
     </div>
 </div>
@@ -228,6 +233,20 @@
             box.style.display = 'none';
             icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
         }
+    }
+
+    // Optional: export logs helper (if not defined elsewhere)
+    if (typeof window.exportLogs !== 'function') {
+        window.exportLogs = function() {
+            const logs = (state && state.story || []).map(e => e.msg).join('\n');
+            const blob = new Blob([logs || 'No logs yet.'], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spellblade-logs.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
     }
 </script>
 </body>
