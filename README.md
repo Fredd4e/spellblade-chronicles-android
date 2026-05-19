@@ -1,1 +1,1 @@
-Updated README with accurate description of the HTML5/JS PWA game, removed outdated Kotlin references, clarified play instructions.
+Updated README explaining the new modular structure
