@@ -1,1 +1,1 @@
-Combat, UI, Quests with Elder/Merchant fixes and spell Back button (in progress - key functions included)
+Combat + UI + Quests with fixes (work in progress - expanding)

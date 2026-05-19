@@ -1,1 +1,1 @@
-Modular structure: index.html + core.js + game.js + lore.js. All previous fixes included.
+Modular split in progress on this branch

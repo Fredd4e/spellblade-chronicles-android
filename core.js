@@ -1,1 +1,1 @@
-State, save/load, init, recalculateMaxStats
+Core state and initialization
