@@ -312,8 +312,8 @@ function renderActions() {
 
     if (loc === 'village') {
         if (villageSpot === 'square') {
-            let html = `<div class="mb-2 px-1"><span class="font-semibold text-emerald-400">Village Square</span></div>`;
-            html += `<div class="grid grid-cols-2 gap-3">`;
+            let html = `<div class="mb-1 px-1 text-emerald-400 text-sm font-semibold">Village Square</div>`;
+            html += `<div class="grid grid-cols-2 gap-2.5">`;
             
             html += `<div onclick="goToEldersHut()" class="town-card bg-zinc-800 hover:bg-zinc-700 p-3 rounded-2xl cursor-pointer flex flex-col items-center text-center">
                 <i class="fas fa-user-tie text-amber-400 text-xl mb-1"></i>
@@ -398,6 +398,8 @@ function goToChapel() {
     updateAll();
 }
 
+// ==================== IMPROVED DIALOGUE SYSTEM ====================
+
 function startDialogue(npc) {
     const modal = document.getElementById('dialogue-modal');
     const nameEl = document.getElementById('dialogue-npc-name');
@@ -426,16 +428,33 @@ function startDialogue(npc) {
     else if (npc === 'elder') {
         nameEl.textContent = 'Village Elder';
         portrait.src = 'assets/npcs/elder.jpg';
-        textEl.innerHTML = "'Ah, it's you again. What brings you to my door?'";
         
-        choicesEl.innerHTML = `
-            <div onclick="talkElder(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                <i class="fas fa-comments text-amber-400 w-5"></i> <span>Talk</span>
-            </div>
-            <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
-            </div>
-        `;
+        // Dynamic text based on quest progress
+        if (state.quest === 0) {
+            textEl.innerHTML = "'Ah, a new face. The woods have grown dangerous. Slay a few of the foul creatures and return to me.'";
+            choicesEl.innerHTML = `
+                <div onclick="acceptElderQuest()" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                    <i class="fas fa-check text-emerald-300 w-5"></i> <span>Accept the task</span>
+                </div>
+                <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                    <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
+                </div>
+            `;
+        } else if (state.quest === 1) {
+            textEl.innerHTML = "'Have you slain the creatures in the woods? Return when you have slain more.'";
+            choicesEl.innerHTML = `
+                <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                    <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
+                </div>
+            `;
+        } else {
+            textEl.innerHTML = "'Well done. The village is safer thanks to you.'";
+            choicesEl.innerHTML = `
+                <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                    <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
+                </div>
+            `;
+        }
     } 
     else if (npc === 'merchant') {
         nameEl.textContent = 'Merchant';
@@ -463,6 +482,7 @@ function closeDialogue() {
     updateAll();
 }
 
+// Magontha healing that keeps dialogue open
 function talkToMagonthaKeepOpen() {
     log("<b>Magontha:</b> 'May the light protect you.'", true);
     if (state.player.hp < state.player.maxHp * 0.6) {
@@ -476,9 +496,23 @@ function talkToMagonthaKeepOpen() {
     save();
     setTimeout(() => {
         startDialogue('magontha');
-    }, 600);
+    }, 500);
 }
 
+// Elder quest flow (structured like merchant)
+function acceptElderQuest() {
+    if (state.quest === 0) {
+        state.quest = 1;
+        log("<b>Quest accepted:</b> Slay creatures in the Whispering Woods and return to the Elder.", true);
+    }
+    updateAll();
+    save();
+    setTimeout(() => {
+        startDialogue('elder');
+    }, 400);
+}
+
+// Merchant quest functions (kept for consistency)
 function showMerchantQuests() {
     const modal = document.getElementById('dialogue-modal');
     const textEl = document.getElementById('dialogue-text');
@@ -487,10 +521,10 @@ function showMerchantQuests() {
     textEl.innerHTML = "'I have a task for someone brave. There's a corrupted wolf causing trouble in the woods. Bring me proof you've dealt with it.'";
     
     choicesEl.innerHTML = `
-        <div onclick="acceptMerchantQuest(); closeDialogue();" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+        <div onclick="acceptMerchantQuest()" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
             <i class="fas fa-check text-emerald-300 w-5"></i> <span>Accept the quest</span>
         </div>
-        <div onclick="declineMerchantQuest(); closeDialogue();" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+        <div onclick="declineMerchantQuest()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
             <i class="fas fa-times text-red-400 w-5"></i> <span>Decline</span>
         </div>
     `;
@@ -505,13 +539,20 @@ function acceptMerchantQuest() {
     }
     updateAll();
     save();
+    setTimeout(() => {
+        startDialogue('merchant');
+    }, 400);
 }
 
 function declineMerchantQuest() {
     log("'Fair enough. Come back if you change your mind.'");
     updateAll();
+    setTimeout(() => {
+        startDialogue('merchant');
+    }, 400);
 }
 
+// Old functions kept for compatibility
 function talkToMagontha() {
     log("<b>Magontha:</b> 'May the light protect you.'", true);
     if (state.player.hp < state.player.maxHp * 0.6) {
@@ -524,6 +565,25 @@ function talkToMagontha() {
     updateAll();
     save();
 }
+
+function talkElder() {
+    const elder = Lore.elder;
+    if (state.quest === 0) {
+        elder.stage0.forEach(line => log(line, true));
+        state.quest = 1;
+    } else if (state.quest === 1 && state.kills >= 3) {
+        elder.stage1_complete.forEach(line => log(line, true));
+        state.player.gold += 40;
+        state.quest = 2;
+    } else if (state.quest === 2) {
+        elder.stage2.forEach(line => log(line, true));
+    } else {
+        elder.default.forEach(line => log(line));
+    }
+    updateAll(); save();
+}
+
+// ==================== REST OF THE GAME ====================
 
 function showIntro() {
     const modal = document.getElementById('intro-modal');
@@ -543,23 +603,6 @@ function startGame(withIntro) {
             log("You stand before the Elder in the village square.");
         }, 400);
     }
-}
-
-function talkElder() {
-    const elder = Lore.elder;
-    if (state.quest === 0) {
-        elder.stage0.forEach(line => log(line, true));
-        state.quest = 1;
-    } else if (state.quest === 1 && state.kills >= 3) {
-        elder.stage1_complete.forEach(line => log(line, true));
-        state.player.gold += 40;
-        state.quest = 2;
-    } else if (state.quest === 2) {
-        elder.stage2.forEach(line => log(line, true));
-    } else {
-        elder.default.forEach(line => log(line));
-    }
-    updateAll(); save();
 }
 
 function openShop() {
