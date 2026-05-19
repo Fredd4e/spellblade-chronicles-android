@@ -1,1 +1,1 @@
-Combat, UI, Quests with all fixes (Elder turn-in, Merchant completion, spell Back button, etc.)
+Combat, UI, Quests with Elder/Merchant fixes and spell Back button (in progress - key functions included)

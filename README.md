@@ -1,1 +1,1 @@
-Updated README explaining the new modular structure
+Modular structure: index.html + core.js + game.js + lore.js. All previous fixes included.

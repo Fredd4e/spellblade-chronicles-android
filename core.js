@@ -1,1 +1,1 @@
-State, save/load, init, recalculateMaxStats, log, updateAll
+State, save/load, init, recalculateMaxStats
