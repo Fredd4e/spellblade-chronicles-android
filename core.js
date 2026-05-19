@@ -13,6 +13,7 @@ let state = {
         str: 5,
         int: 5,
         def: 3,
+        crit: 5,  // NEW: Critical chance % - starts at 5%, grows with levels
         weapon: { name: "Rusty Sword", bonus: 3 },
         armor: { name: "Cloth Tunic", bonus: 1 },
         spells: ["Firebolt"]
@@ -82,6 +83,7 @@ function load() {
                     str: p.str || 5,
                     int: p.int || 5,
                     def: p.def || 3,
+                    crit: p.crit || 5,  // NEW: ensure crit exists
                     weapon: p.weapon || { name: "Rusty Sword", bonus: 3 },
                     armor: p.armor || { name: "Cloth Tunic", bonus: 1 },
                     spells: Array.isArray(p.spells) ? p.spells : ["Firebolt"]
