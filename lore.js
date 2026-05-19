@@ -1,5 +1,4 @@
-// lore.js - All story text, dialogues, and flavor for Spellblade Chronicles
-// This keeps the main index.html cleaner and easier to maintain.
+// lore.js - All story text, dialogues, flavor, and game data for modularity
 
 const Lore = {
     intro: {
@@ -53,8 +52,24 @@ const Lore = {
         "Mana Potion": "Restores magical energy.",
         "Iron Sword": "A sturdy blade forged in the village smithy.",
         "Leather Armor": "Light but reliable protection."
-    }
+    },
+
+    // Game data for modularity
+    spells: {
+        "Firebolt": { cost: 5, baseDmg: 8, scaling: 1.5, desc: "Hurls a bolt of fire at the enemy." },
+        "Ice Shard": { cost: 8, baseDmg: 12, scaling: 1.8, desc: "Launches sharp shards of ice." },
+        "Heal": { cost: 10, baseHeal: 15, scaling: 2.5, desc: "Channels magic to mend your wounds." }
+    },
+
+    shopItems: [
+        {name:"Iron Sword",type:"weapon",bonus:7,price:55,effect:"+7 Damage"},
+        {name:"Leather Armor",type:"armor",bonus:4,price:45,effect:"+4 Defense"},
+        {name:"Mail Armor",type:"armor",bonus:10,price:150,effect:"+10 DEF, +20 Max HP, +20 Max MP", isSpecial: true, healthBonus:20, manaBonus:20},
+        {name:"Health Potion",type:"consumable",bonus:30,price:12,effect:"Restores 30 HP"},
+        {name:"Mana Potion",type:"consumable",bonus:15,price:15,effect:"Restores 15 MP"},
+        {name:"Spell Tome: Ice Shard",type:"spell",price:95,effect:"Learn Ice Shard spell"}
+    ]
 };
 
-// Make it available globally
+// Make available globally
 window.Lore = Lore;
