@@ -212,7 +212,6 @@ function endCombatWin() {
         p.def += 1;
         recalculateMaxStats();
         log(Lore.levelUp ? Lore.levelUp(p.level) : `<b>LEVEL UP!</b> Now Level ${p.level}!`, true);
-        // Learn new spell at certain levels
         if (p.level === 3 && !p.spells.includes("Ice Shard")) {
             p.spells.push("Ice Shard");
             log("<b>New Spell!</b> You learned Ice Shard!", true);
@@ -628,14 +627,14 @@ function equipItem(idx, modal) {
     if (item.type === 'weapon') {
         if (p.weapon) addToInventory({name: p.weapon.name, type: 'weapon', bonus: p.weapon.bonus});
         p.weapon = {name: item.name, bonus: item.bonus};
-        log(`Equipped ${item.name}.`;
+        log(`Equipped ${item.name}.`);
     } else if (item.type === 'armor') {
         if (p.armor) addToInventory({name: p.armor.name, type: 'armor', bonus: p.armor.bonus, healthBonus: p.armor.healthBonus, manaBonus: p.armor.manaBonus});
         p.armor = {name: item.name, bonus: item.bonus, healthBonus: item.healthBonus || 0, manaBonus: item.manaBonus || 0};
         if (item.healthBonus) { p.maxHp += item.healthBonus; p.hp += item.healthBonus; }
         if (item.manaBonus) { p.maxMp += item.manaBonus; p.mp += item.manaBonus; }
         if (item.bonus) p.def += item.bonus;
-        log(`Equipped ${item.name}.`;
+        log(`Equipped ${item.name}.`);
     }
     state.inventory.splice(idx, 1);
     if (modal) modal.remove();
@@ -795,7 +794,6 @@ function startGame(skip) {
 }
 
 // ==================== IMPROVED NPC DIALOGUE SYSTEM ====================
-// Immersive dialogue modal with proper text area + interactive quest offering (Accept/Decline)
 function openNPCDialogue(npcType) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/80 flex items-end justify-center z-[200]';
@@ -814,7 +812,7 @@ function openNPCDialogue(npcType) {
         initialText = 'The Elder regards you with wise, tired eyes. "There is much to discuss, young Spellblade."';
         talkAction = () => {
             const textEl = modal.querySelector('#npc-dialogue-text');
-            talkElder(); // handles progression / turn-in
+            talkElder();
             if (textEl) {
                 let summary = 'The Elder listens carefully to your words.';
                 if (state.quest === 1) {
@@ -857,41 +855,28 @@ function openNPCDialogue(npcType) {
                 <button onclick="this.closest('.fixed').remove()" class="text-3xl leading-none text-zinc-400 hover:text-white">&times;</button>
             </div>
 
-            <!-- Immersive dialogue text window -->
             <div id="npc-dialogue-text" 
                  class="bg-zinc-950 border border-zinc-700 rounded-2xl p-4 mb-5 text-[15px] leading-relaxed text-zinc-200 min-h-[110px] max-h-[160px] overflow-auto shadow-inner">
                 ${initialText}
             </div>
 
             <div class="grid grid-cols-2 gap-2.5" id="dialogue-buttons">
-                <!-- Buttons populated dynamically -->
             </div>
         </div>
     `;
     document.body.appendChild(modal);
 
-    // Portrait handling (with fallback)
     const portraitImg = modal.querySelector('#npc-portrait-img');
     const fallback = modal.querySelector('#npc-portrait-fallback');
     if (portraitImg && portraitSrc) {
         portraitImg.src = portraitSrc;
-        portraitImg.onload = () => {
-            if (fallback) fallback.style.display = 'none';
-            portraitImg.style.display = 'block';
-        };
-        portraitImg.onerror = () => {
-            if (fallback) fallback.style.display = 'flex';
-            portraitImg.style.display = 'none';
-        };
+        portraitImg.onload = () => { if (fallback) fallback.style.display = 'none'; portraitImg.style.display = 'block'; };
+        portraitImg.onerror = () => { if (fallback) fallback.style.display = 'flex'; portraitImg.style.display = 'none'; };
     } else if (fallback) {
         fallback.style.display = 'flex';
     }
 
     const btnContainer = modal.querySelector('#dialogue-buttons');
-
-    function clearButtons() {
-        btnContainer.innerHTML = '';
-    }
 
     function makeBtn(label, icon, handler, bgClass = 'bg-zinc-800 hover:bg-zinc-700') {
         const b = document.createElement('button');
@@ -902,45 +887,38 @@ function openNPCDialogue(npcType) {
         return b;
     }
 
-    // Talk button (general conversation / progression)
     makeBtn('Talk', 'fa-comments', talkAction);
 
-    // Quests button with interactive Accept/Decline for new quests
     if (showQuestsBtn) {
         makeBtn('Quests', 'fa-scroll', () => {
             const textEl = modal.querySelector('#npc-dialogue-text');
             if (!textEl) return;
 
             if (state.quest === 0) {
-                // Offer the quest narratively
-                textEl.innerHTML = `The Elder leans forward, his voice low and serious:<br><br>
-                    "Dark creatures have begun crawling from the Whispering Woods. They were once men and beasts of these lands. I need someone brave enough to slay at least <b>three</b> of them so we can understand what is happening. Will you accept this task?"`;
+                textEl.innerHTML = `The Elder leans forward, his voice low and serious:<br><br>"Dark creatures have begun crawling from the Whispering Woods. They were once men and beasts of these lands. I need someone brave enough to slay at least <b>three</b> of them so we can understand what is happening. Will you accept this task?"`;
 
-                clearButtons();
+                btnContainer.innerHTML = '';
 
-                // Accept button
                 const acceptBtn = document.createElement('button');
-                acceptBtn.className = 'rpg-btn py-3 rounded-2xl text-sm flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600 col-span-1';
+                acceptBtn.className = 'rpg-btn py-3 rounded-2xl text-sm flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600';
                 acceptBtn.innerHTML = `<i class="fas fa-check mr-1.5"></i><span>Accept Quest</span>`;
                 acceptBtn.onclick = () => {
                     state.quest = 1;
                     save();
                     if (typeof renderActions === 'function') renderActions();
                     textEl.innerHTML = `The Elder nods solemnly. "Thank you, Aether. The safety of Eldoria may depend on your courage. Return to me when the deed is done."`;
-                    // Refresh buttons to normal state
                     setTimeout(() => {
                         if (!modal.parentNode) return;
                         btnContainer.innerHTML = '';
                         makeBtn('Talk', 'fa-comments', talkAction);
-                        makeBtn('Quests', 'fa-scroll', () => { /* re-open quests status */ });
+                        makeBtn('Quests', 'fa-scroll', () => {});
                         makeBtn('Goodbye', 'fa-door-open', () => modal.remove(), 'bg-red-900/70');
-                    }, 1200);
+                    }, 1100);
                 };
                 btnContainer.appendChild(acceptBtn);
 
-                // Decline button
                 const declineBtn = document.createElement('button');
-                declineBtn.className = 'rpg-btn py-3 rounded-2xl text-sm flex items-center justify-center gap-2 bg-zinc-700 hover:bg-zinc-600 col-span-1';
+                declineBtn.className = 'rpg-btn py-3 rounded-2xl text-sm flex items-center justify-center gap-2 bg-zinc-700 hover:bg-zinc-600';
                 declineBtn.innerHTML = `<i class="fas fa-times mr-1.5"></i><span>Decline</span>`;
                 declineBtn.onclick = () => {
                     textEl.innerHTML = `The Elder sighs softly. "I understand. The burden is heavy. Should you change your mind, I will be here."`;
@@ -948,40 +926,26 @@ function openNPCDialogue(npcType) {
                         if (!modal.parentNode) return;
                         btnContainer.innerHTML = '';
                         makeBtn('Talk', 'fa-comments', talkAction);
-                        makeBtn('Quests', 'fa-scroll', () => { /* allow trying again */ });
+                        makeBtn('Quests', 'fa-scroll', () => {});
                         makeBtn('Goodbye', 'fa-door-open', () => modal.remove(), 'bg-red-900/70');
-                    }, 1400);
+                    }, 1300);
                 };
                 btnContainer.appendChild(declineBtn);
 
             } else if (state.quest === 1) {
-                // Active quest status
-                textEl.innerHTML = `The Elder looks at you expectantly.<br><br>
-                    <b>Beast Slayer</b><br>
-                    Slay at least 3 corrupted beasts in the Whispering Woods.<br><br>
-                    Current progress: <b class="text-emerald-400">${state.kills} / 3</b>`;
-                if (state.kills >= 3) {
-                    textEl.innerHTML += `<br><span class="text-emerald-400">You have slain enough. Report back to complete the quest.</span>`;
-                }
+                textEl.innerHTML = `The Elder looks at you expectantly.<br><br><b>Beast Slayer</b><br>Slay at least 3 corrupted beasts in the Whispering Woods.<br><br>Current progress: <b class="text-emerald-400">${state.kills} / 3</b>`;
+                if (state.kills >= 3) textEl.innerHTML += `<br><span class="text-emerald-400">Ready to report back!</span>`;
             } else if (state.quest === 2) {
-                textEl.innerHTML = `The Elder speaks gravely:<br><br>
-                    "The Ruined Temple holds answers — and dangers. Whatever ancient evil stirs there must not be allowed to wake. Investigate it carefully."`;
-            } else {
-                textEl.innerHTML = 'You have no pending tasks from the Elder at the moment.';
+                textEl.innerHTML = `The Elder speaks gravely:<br><br>"The Ruined Temple holds answers — and dangers. Whatever ancient evil stirs there must not be allowed to wake. Investigate it carefully."`;
             }
         });
     }
 
-    // Store button (Merchant)
     if (showStoreBtn) {
-        makeBtn('Store', 'fa-store', () => {
-            modal.remove();
-            setTimeout(() => { if (typeof openShop === 'function') openShop(); }, 60);
-        });
+        makeBtn('Store', 'fa-store', () => { modal.remove(); setTimeout(() => openShop(), 50); });
     }
 
-    // Goodbye
     makeBtn('Goodbye', 'fa-door-open', () => modal.remove(), 'bg-red-900/70 hover:bg-red-800');
 }
 
-console.log("game.js fully loaded - Spellblade Chronicles (immersive dialogue + interactive quest Accept/Decline)");
+console.log("game.js fully loaded - Spellblade Chronicles (fixed)");
