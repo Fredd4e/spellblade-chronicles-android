@@ -1,1 +1,1 @@
-Improved core.js with full state management and initialization
+Final core.js with complete state and init

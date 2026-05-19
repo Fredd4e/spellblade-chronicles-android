@@ -1,1 +1,1 @@
-Modular version status: In active development. Core files updated with fixes.
+Modular version complete. All fixes included. Ready for testing.

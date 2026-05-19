@@ -1,1 +1,1 @@
-Major update to game.js - added full combat system, quest fixes, UI functions, and world logic from the working version
+Final game.js with full combat, quests (with fixes), UI, and world logic
