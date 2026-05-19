@@ -1,1 +1,1 @@
-Modular split in progress on this branch
+Modular version status: In active development. Core files updated with fixes.
