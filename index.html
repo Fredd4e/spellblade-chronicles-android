@@ -398,7 +398,7 @@ function goToChapel() {
     updateAll();
 }
 
-// ==================== IMPROVED DIALOGUE SYSTEM ====================
+// ==================== IMPROVED DIALOGUE SYSTEM (Consistent NPC Structure) ====================
 
 function startDialogue(npc) {
     const modal = document.getElementById('dialogue-modal');
@@ -428,33 +428,19 @@ function startDialogue(npc) {
     else if (npc === 'elder') {
         nameEl.textContent = 'Village Elder';
         portrait.src = 'assets/npcs/elder.jpg';
+        textEl.innerHTML = "'Ah, it's you again. What brings you to my door?'";
         
-        // Dynamic text based on quest progress
-        if (state.quest === 0) {
-            textEl.innerHTML = "'Ah, a new face. The woods have grown dangerous. Slay a few of the foul creatures and return to me.'";
-            choicesEl.innerHTML = `
-                <div onclick="acceptElderQuest()" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                    <i class="fas fa-check text-emerald-300 w-5"></i> <span>Accept the task</span>
-                </div>
-                <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                    <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
-                </div>
-            `;
-        } else if (state.quest === 1) {
-            textEl.innerHTML = "'Have you slain the creatures in the woods? Return when you have slain more.'";
-            choicesEl.innerHTML = `
-                <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                    <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
-                </div>
-            `;
-        } else {
-            textEl.innerHTML = "'Well done. The village is safer thanks to you.'";
-            choicesEl.innerHTML = `
-                <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
-                    <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
-                </div>
-            `;
-        }
+        choicesEl.innerHTML = `
+            <div onclick="talkElder()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-comments text-amber-400 w-5"></i> <span>Talk</span>
+            </div>
+            <div onclick="showElderQuests()" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-scroll text-emerald-300 w-5"></i> <span>Quests</span>
+            </div>
+            <div onclick="closeDialogue()" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-door-open text-zinc-400 w-5"></i> <span>Goodbye</span>
+            </div>
+        `;
     } 
     else if (npc === 'merchant') {
         nameEl.textContent = 'Merchant';
@@ -482,6 +468,51 @@ function closeDialogue() {
     updateAll();
 }
 
+// ==================== ELDER QUEST SYSTEM (Consistent with Merchant) ====================
+
+function showElderQuests() {
+    const textEl = document.getElementById('dialogue-text');
+    const choicesEl = document.getElementById('dialogue-choices');
+
+    if (state.quest === 0) {
+        textEl.innerHTML = "'The woods have grown dangerous. Slay a few of the foul creatures and return to me when the task is done.'";
+        choicesEl.innerHTML = `
+            <div onclick="acceptElderQuest()" class="dialogue-choice bg-emerald-800 hover:bg-emerald-700 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-check text-emerald-300 w-5"></i> <span>Accept the quest</span>
+            </div>
+            <div onclick="startDialogue('elder')" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-arrow-left text-zinc-400 w-5"></i> <span>Back</span>
+            </div>
+        `;
+    } else if (state.quest === 1) {
+        textEl.innerHTML = "'Have you slain enough creatures in the woods yet? Return when you have made progress.'";
+        choicesEl.innerHTML = `
+            <div onclick="startDialogue('elder')" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-arrow-left text-zinc-400 w-5"></i> <span>Back</span>
+            </div>
+        `;
+    } else {
+        textEl.innerHTML = "'Well done. The village feels safer thanks to your efforts.'";
+        choicesEl.innerHTML = `
+            <div onclick="startDialogue('elder')" class="dialogue-choice bg-zinc-800 p-3 rounded-2xl cursor-pointer flex items-center gap-3">
+                <i class="fas fa-arrow-left text-zinc-400 w-5"></i> <span>Back</span>
+            </div>
+        `;
+    }
+}
+
+function acceptElderQuest() {
+    if (state.quest === 0) {
+        state.quest = 1;
+        log("<b>Quest accepted:</b> Slay creatures in the Whispering Woods and return to the Elder.", true);
+    }
+    updateAll();
+    save();
+    setTimeout(() => {
+        showElderQuests();
+    }, 300);
+}
+
 // Magontha healing that keeps dialogue open
 function talkToMagonthaKeepOpen() {
     log("<b>Magontha:</b> 'May the light protect you.'", true);
@@ -499,22 +530,8 @@ function talkToMagonthaKeepOpen() {
     }, 500);
 }
 
-// Elder quest flow (structured like merchant)
-function acceptElderQuest() {
-    if (state.quest === 0) {
-        state.quest = 1;
-        log("<b>Quest accepted:</b> Slay creatures in the Whispering Woods and return to the Elder.", true);
-    }
-    updateAll();
-    save();
-    setTimeout(() => {
-        startDialogue('elder');
-    }, 400);
-}
-
-// Merchant quest functions (kept for consistency)
+// Merchant quest functions
 function showMerchantQuests() {
-    const modal = document.getElementById('dialogue-modal');
     const textEl = document.getElementById('dialogue-text');
     const choicesEl = document.getElementById('dialogue-choices');
 
@@ -540,8 +557,8 @@ function acceptMerchantQuest() {
     updateAll();
     save();
     setTimeout(() => {
-        startDialogue('merchant');
-    }, 400);
+        showMerchantQuests();
+    }, 300);
 }
 
 function declineMerchantQuest() {
