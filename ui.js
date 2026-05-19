@@ -38,32 +38,25 @@ function startGame(skipIntro = false) {
     if (typeof save === 'function') save();
 }
 
+// Background only - no extra portrait box
 function showAreaPortrait(loc) {
     const p = $('area-portrait');
-    const img = $('area-portrait-img');
-    const cap = $('area-portrait-caption');
-    if (!p || !img || !cap) return;
-
-    p.classList.remove('hidden');
+    const container = document.querySelector('.game-container');
 
     let bgPath = '';
-    let caption = '';
 
     const areas = (window.Lore && Lore.areas) ? Lore.areas : {};
     const areaKey = (!loc || loc === 'village') ? 'village' : loc;
 
     if (areaKey === 'village') {
         bgPath = (areas.village && areas.village.bgImage) ? areas.village.bgImage : 'assets/backgrounds/village.jpg';
-        caption = areas.village ? areas.village.caption : 'The quiet village square. The Elder awaits.';
     } else if (areaKey === 'woods') {
         bgPath = (areas.woods && areas.woods.bgImage) ? areas.woods.bgImage : 'assets/backgrounds/woods.jpg';
-        caption = areas.woods ? areas.woods.caption : 'Twisted trees whisper secrets and dangers.';
     } else if (areaKey === 'ruins') {
         bgPath = (areas.ruins && areas.ruins.bgImage) ? areas.ruins.bgImage : 'assets/backgrounds/ruins.jpg';
-        caption = areas.ruins ? areas.ruins.caption : 'Ancient stones hum with forgotten power.';
     }
 
-    const container = document.querySelector('.game-container');
+    // Only set full background on the game container
     if (container && bgPath) {
         container.style.backgroundImage = `linear-gradient(rgba(15, 15, 15, 0.72), rgba(9, 9, 9, 0.82)), url('${bgPath}')`;
         container.style.backgroundSize = 'cover';
@@ -72,15 +65,8 @@ function showAreaPortrait(loc) {
         container.style.transition = 'background-image 0.6s ease';
     }
 
-    if (bgPath) {
-        img.src = bgPath;
-        img.style.display = 'block';
-        img.onerror = () => { img.style.display = 'none'; };
-    } else {
-        img.style.display = 'none';
-    }
-
-    cap.innerHTML = caption;
+    // Hide the extra portrait box completely
+    if (p) p.classList.add('hidden');
 }
 
 function updateStats() {
@@ -117,7 +103,7 @@ function renderActions() {
     let actions = [];
     if (loc === 'village') actions = [
         { label: 'Talk to Elder', icon: 'fa-user-tie', fn: () => startDialogue('elder') },
-        { label: 'Talk to Merchant', icon: 'fa-store', fn: () => startDialogue('merchant') },   // NEW
+        { label: 'Talk to Merchant', icon: 'fa-store', fn: () => startDialogue('merchant') },
         { label: 'Explore the Square', icon: 'fa-search-location', fn: exploreVillage },
         { label: 'Travel to Woods', icon: 'fa-tree', fn: () => travel('woods') }
     ];
@@ -251,7 +237,7 @@ function dialogueQuests(npcKey) {
 
 function dialogueShop(npcKey) {
     closeDialogue();
-    showShopModal();   // NEW proper shop modal
+    showShopModal();
 }
 
 function closeDialogue() {
@@ -353,7 +339,6 @@ function buyItem(item, button) {
     updateAll();
     save();
 
-    // Refresh shop gold display
     const goldEl = document.getElementById('shop-gold');
     if (goldEl) goldEl.textContent = state.player.gold;
 
@@ -391,7 +376,6 @@ function showCharacterModal() {
 
     content.innerHTML = `
         <div class="grid grid-cols-2 gap-4">
-            <!-- Left: Info -->
             <div>
                 <div class="text-2xl font-bold text-amber-300">${p.name}</div>
                 <div class="text-sm text-zinc-400 mb-3">Level ${p.level || 1} Spellblade</div>
@@ -406,7 +390,6 @@ function showCharacterModal() {
                 <div class="text-sm">${(p.spells || []).join(', ') || 'Firebolt'}</div>
             </div>
 
-            <!-- Right: Stats -->
             <div class="text-sm">
                 <div class="flex justify-between py-1"><span>HP</span> <span class="font-mono">${p.hp}/${p.maxHp}</span></div>
                 <div class="flex justify-between py-1"><span>MP</span> <span class="font-mono">${p.mp}/${p.maxMp}</span></div>
@@ -425,7 +408,43 @@ function showCharacterModal() {
     charModal.style.display = 'flex';
 }
 
-// ==================== INVENTORY (existing) ====================
+// ==================== MAP FUNCTIONS (FIXED) ====================
+
+function showMap() {
+    const m = $('map-modal');
+    if (m) {
+        m.style.display = 'flex';
+        m.classList.remove('hidden');
+    }
+}
+
+function hideMap() {
+    const m = $('map-modal');
+    if (m) {
+        m.style.display = 'none';
+        m.classList.add('hidden');
+    }
+}
+
+let mz = 1;
+
+function zoomMap(d) {
+    mz = Math.max(0.5, Math.min(3, mz + d));
+    const c = $('map-content');
+    if (c) c.style.transform = `scale(${mz})`;
+    const zl = $('zoom-level');
+    if (zl) zl.textContent = Math.round(mz * 100) + '%';
+}
+
+function resetMapZoom() {
+    mz = 1;
+    const c = $('map-content');
+    if (c) c.style.transform = 'scale(1)';
+    const zl = $('zoom-level');
+    if (zl) zl.textContent = '100%';
+}
+
+// ==================== INVENTORY ====================
 
 function showInventory(){ 
     let m=document.getElementById('inv-m'); 
