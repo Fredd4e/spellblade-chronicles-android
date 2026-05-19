@@ -16,7 +16,32 @@ function startCombat(key='beast') {
     if($('enemy-hp')) $('enemy-hp').textContent = state.enemy.hp;
     if($('enemy-max')) $('enemy-max').textContent = state.enemy.maxHp;
     if($('enemy-hp-bar')) $('enemy-hp-bar').style.width='100%';
-    const clog=$('combat-log'); if(clog) clog.innerHTML = `<div>A <b>${state.enemy.name}</b> attacks!</div>`;
+
+    // FIX: Load creature image from assets/creatures/ based on enemy type. Images now load correctly for beasts and skeletons.
+    const eimg = $('enemy-img');
+    if (eimg) {
+        let imgSrc = 'assets/creatures/shadow-stalker.jpg'; // default for corrupted beast
+        const ename = (state.enemy.name || '').toLowerCase();
+        if (key === 'skeleton' || ename.includes('skeletal') || ename.includes('skeleton')) {
+            imgSrc = 'assets/creatures/skeleton-warrior.jpg';
+        } else if (key === 'beast' || ename.includes('beast') || ename.includes('wolf')) {
+            imgSrc = 'assets/creatures/forest-wolf.jpg';
+        }
+        eimg.src = imgSrc;
+        eimg.style.display = 'block';
+        eimg.onerror = function() {
+            this.style.display = 'none';
+            console.warn('Failed to load creature image:', imgSrc);
+        };
+    }
+
+    // Use Lore for combat start flavor if available
+    let startMsg = `A <b>${state.enemy.name}</b> attacks!`;
+    if (window.Lore && Lore.combatStart) {
+        if (key === 'skeleton' && Lore.combatStart.ruins) startMsg = Lore.combatStart.ruins;
+        else if (typeof Lore.combatStart.default === 'function') startMsg = Lore.combatStart.default(state.enemy.name);
+    }
+    const clog=$('combat-log'); if(clog) clog.innerHTML = `<div>${startMsg}</div>`;
     renderCombatButtons();
     $('actions').innerHTML='';
 }
@@ -51,7 +76,8 @@ function updateEnemyUI(){ if(!state.enemy) return; if($('enemy-hp')) $('enemy-hp
 function fleeCombat(){ if(Math.random()<0.55){ if($('combat-log')) $('combat-log').innerHTML+='<div>Fled successfully.</div>'; setTimeout(()=>endCombat(false),300);} else { if($('combat-log')) $('combat-log').innerHTML+='<div>Flee failed!</div>'; setTimeout(enemyAttack,300); } }
 
 function endCombat(win){ state.inCombat=false; $('combat').classList.add('hidden'); if($('combat-buttons')) $('combat-buttons').innerHTML='';
-  if(win && state.enemy){ const xp=Math.floor(state.enemy.maxHp/2)+6; const g=Math.floor(Math.random()*8)+5; state.player.xp=(state.player.xp||0)+xp; state.player.gold=(state.player.gold||0)+g; state.kills=(state.kills||0)+1; log(`Victory! +${xp}XP +${g}g`,true); if(state.kills>=3 && state.quest===1) log('Ready to report to Elder.',true); checkLevelUp(); }
+  const eimg = $('enemy-img'); if(eimg) eimg.style.display = 'none'; // FIX: hide creature image
+  if(win && state.enemy){ const xp=Math.floor(state.enemy.maxHp/2)+6; const g=Math.floor(Math.random()*8)+5; state.player.xp=(state.player.xp||0)+xp; state.player.gold=(state.player.gold||0)+g; state.kills=(state.kills||0)+1; log(`Victory! +${xp}XP +${g}g`,true); if(state.kills>=3 && state.quest===1) log('Ready to report to Elder.',true); if(typeof checkLevelUp==='function') checkLevelUp(); }
   else if(!win){ log('Defeated... recovering.',true); state.player.hp=Math.max(5,Math.floor((state.player.maxHp||50)*0.4)); }
   state.enemy=null; updateAll(); renderActions(); save();
 }
