@@ -41,11 +41,12 @@ let villageSpot = 'square';
 
 function recalculateMaxStats() {
     const p = state.player;
+    if (typeof p.maxHp !== 'number' || p.maxHp < 50) p.maxHp = 50;
     const calculatedMaxMp = 20 + Math.floor(p.int * 2.2);
-    if (calculatedMaxMp > p.maxMp) {
+    if (calculatedMaxMp > (p.maxMp || 20)) {
         p.maxMp = calculatedMaxMp;
-        p.mp = Math.min(p.mp, p.maxMp);
     }
+    p.mp = Math.min(p.mp || 0, p.maxMp);
 }
 
 function log(msg, important = false) {
@@ -62,9 +63,40 @@ function load() {
     const s = localStorage.getItem('spellblade_v3');
     if (s) {
         try {
-            Object.assign(state, JSON.parse(s));
+            const parsed = JSON.parse(s);
+            Object.assign(state, parsed);
+
+            // Repair nested player object for compatibility with old saves
+            if (parsed.player) {
+                const p = state.player || {};
+                state.player = {
+                    name: p.name || "Aether",
+                    level: p.level || 1,
+                    hp: p.hp || 50,
+                    maxHp: p.maxHp || 50,
+                    mp: p.mp || 20,
+                    maxMp: p.maxMp || 20,
+                    xp: p.xp || 0,
+                    gold: p.gold || 20,
+                    str: p.str || 5,
+                    int: p.int || 5,
+                    def: p.def || 3,
+                    weapon: p.weapon || { name: "Rusty Sword", bonus: 3 },
+                    armor: p.armor || { name: "Cloth Tunic", bonus: 1 },
+                    spells: Array.isArray(p.spells) ? p.spells : ["Firebolt"]
+                };
+            }
+
+            // Ensure locationName exists
+            if (!state.locationName && state.location) {
+                const nameMap = { village: "Eldoria Village Square", woods: "Whispering Woods", ruins: "Ruined Temple" };
+                state.locationName = nameMap[state.location] || state.location;
+            }
+
             recalculateMaxStats();
-        } catch (e) {}
+        } catch (e) {
+            console.warn('Save load failed, using defaults');
+        }
     }
 }
 
@@ -80,6 +112,11 @@ function init() {
     const combatEl = document.getElementById('combat');
     if (combatEl) combatEl.classList.add('hidden');
     if (typeof updateAll === 'function') updateAll();
+
+    // NEW: Show initial background portrait on load
+    if (typeof showAreaPortrait === 'function') {
+        showAreaPortrait(state.location);
+    }
 }
 
 function updateAll() {
