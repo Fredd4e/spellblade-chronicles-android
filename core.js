@@ -1,1 +1,1 @@
-Final core.js with complete state and init
+The full correct content of core.js from local file

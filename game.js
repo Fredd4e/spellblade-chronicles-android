@@ -1,1 +1,1 @@
-Final game.js with full combat, quests (with fixes), UI, and world logic
+The full correct content of game.js from local file
