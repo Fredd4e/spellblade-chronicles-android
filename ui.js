@@ -54,6 +54,8 @@ function showAreaPortrait(loc) {
         bgPath = (areas.woods && areas.woods.bgImage) ? areas.woods.bgImage : 'assets/backgrounds/woods.jpg';
     } else if (areaKey === 'ruins') {
         bgPath = (areas.ruins && areas.ruins.bgImage) ? areas.ruins.bgImage : 'assets/backgrounds/ruins.jpg';
+    } else if (areaKey === 'church') {
+        bgPath = (areas.church && areas.church.bgImage) ? areas.church.bgImage : 'assets/backgrounds/village.jpg';
     }
 
     // Only set full background on the game container
@@ -104,6 +106,7 @@ function renderActions() {
     if (loc === 'village') actions = [
         { label: 'Talk to Elder', icon: 'fa-user-tie', fn: () => startDialogue('elder') },
         { label: 'Talk to Merchant', icon: 'fa-store', fn: () => startDialogue('merchant') },
+        { label: 'Visit the Church', icon: 'fa-church', fn: () => travel('church') },
         { label: 'Explore the Square', icon: 'fa-search-location', fn: exploreVillage },
         { label: 'Travel to Woods', icon: 'fa-tree', fn: () => travel('woods') }
     ];
@@ -118,6 +121,12 @@ function renderActions() {
         { label: 'Search Ancient Stones', icon: 'fa-search', fn: searchLoot },
         { label: 'Return to Woods', icon: 'fa-tree', fn: () => travel('woods') },
         { label: 'Return to Village', icon: 'fa-home', fn: () => travel('village') }
+    ];
+    else if (loc === 'church') actions = [
+        { label: 'Talk to Sarah', icon: 'fa-hands-praying', fn: () => startDialogue('sarah') },
+        { label: 'Receive Holy Blessing (10g)', icon: 'fa-pray', fn: restoreMana },
+        { label: 'Explore the Church', icon: 'fa-search', fn: exploreChurch },
+        { label: 'Return to Village Square', icon: 'fa-home', fn: () => travel('village') }
     ];
 
     actions.forEach(a => {
@@ -162,6 +171,7 @@ function startDialogue(npcKey) {
         textEl.innerHTML = `Hello, traveler. What brings you to speak with me today?`;
         if (npcKey === 'elder') textEl.innerHTML = `The wards grow weaker by the day, Aether. We must act.`;
         if (npcKey === 'merchant') textEl.innerHTML = `Ah, a fellow adventurer! Care to browse my wares?`;
+        if (npcKey === 'sarah') textEl.innerHTML = `Welcome, Spellblade. The Light shines upon those who protect the innocent. How may I assist you today?`;
     }
 
     renderDialogueOptions(npcKey, npc);
@@ -220,6 +230,16 @@ function dialogueTalk(npcKey) {
     } else if (npcKey === 'merchant') {
         message = `Welcome to my shop, ${state.player.name || 'traveler'}! I have fine goods from across the lands.`;
         log(`<b>Merchant:</b> Welcome! Take a look at my wares.`, true);
+    } else if (npcKey === 'sarah') {
+        const sarahDialogues = [
+            "<b>Sarah:</b> 'Even in these dark times, the church stands as a beacon. Your courage in the woods inspires the villagers.'",
+            "<b>Sarah:</b> 'I was only 22 when I took my vows, but the Light does not measure wisdom in years. Your mana feels strained from battle. A blessing can help replenish it.'",
+            "<b>Sarah:</b> 'The stained glass windows tell of ancient Spellblades who balanced blade and magic. You walk a noble path, Aether.'",
+            "<b>Sarah:</b> 'Rest here a while. The shadows cannot reach you within these walls. If your magical energies are depleted, I can offer a holy blessing for a small tithe to the church.'"
+        ];
+        const randomMsg = sarahDialogues[Math.floor(Math.random()*sarahDialogues.length)];
+        message = randomMsg;
+        log(randomMsg, true);
     }
 
     if (textEl) textEl.innerHTML = message;
@@ -259,14 +279,14 @@ function showShopModal() {
         shopModal.id = 'shop-modal';
         shopModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         shopModal.innerHTML = `
-            <div class="bg-zinc-900 rounded-3xl w-full max-w-[620px] border border-zinc-700">
-                <div class="flex justify-between items-center p-5 border-b border-zinc-700">
-                    <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-store mr-2"></i> Merchant's Wares</h3>
-                    <button onclick="document.getElementById('shop-modal').style.display='none'" class="text-2xl leading-none text-zinc-400 hover:text-white">&times;</button>
+            <div class=\"bg-zinc-900 rounded-3xl w-full max-w-[620px] border border-zinc-700\">
+                <div class=\"flex justify-between items-center p-5 border-b border-zinc-700\">
+                    <h3 class=\"font-bold text-xl text-amber-300\"><i class=\"fas fa-store mr-2\"></i> Merchant's Wares</h3>
+                    <button onclick=\"document.getElementById('shop-modal').style.display='none'\" class=\"text-2xl leading-none text-zinc-400 hover:text-white\">&times;</button>
                 </div>
-                <div class="p-5 max-h-[420px] overflow-auto" id="shop-items"></div>
-                <div class="p-4 border-t border-zinc-700 text-right text-sm">
-                    Your Gold: <span id="shop-gold" class="font-bold text-yellow-400"></span>
+                <div class=\"p-5 max-h-[420px] overflow-auto\" id=\"shop-items\"></div>
+                <div class=\"p-4 border-t border-zinc-700 text-right text-sm\">
+                    Your Gold: <span id=\"shop-gold\" class=\"font-bold text-yellow-400\"></span>
                 </div>
             </div>
         `;
@@ -285,12 +305,12 @@ function showShopModal() {
         div.className = 'flex justify-between items-center p-3 mb-2 bg-zinc-800 rounded-2xl';
         div.innerHTML = `
             <div>
-                <div class="font-semibold">${item.name}</div>
-                <div class="text-xs text-zinc-400">${item.effect || ''}</div>
+                <div class=\"font-semibold\">${item.name}</div>
+                <div class=\"text-xs text-zinc-400\">${item.effect || ''}</div>
             </div>
-            <div class="text-right">
-                <div class="text-yellow-400 font-bold">${item.price}g</div>
-                <button class="mt-1 px-4 py-1 text-sm bg-emerald-700 hover:bg-emerald-600 rounded-xl" data-index="${index}">Buy</button>
+            <div class=\"text-right\">
+                <div class=\"text-yellow-400 font-bold\">${item.price}g</div>
+                <button class=\"mt-1 px-4 py-1 text-sm bg-emerald-700 hover:bg-emerald-600 rounded-xl\" data-index=\"${index}\">Buy</button>
             </div>
         `;
 
@@ -360,12 +380,12 @@ function showCharacterModal() {
         charModal.id = 'character-modal';
         charModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         charModal.innerHTML = `
-            <div class="bg-zinc-900 rounded-3xl w-full max-w-[580px] border border-zinc-700">
-                <div class="flex justify-between items-center p-5 border-b border-zinc-700">
-                    <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-user mr-2"></i> Character Sheet</h3>
-                    <button onclick="document.getElementById('character-modal').style.display='none'" class="text-2xl text-zinc-400 hover:text-white">&times;</button>
+            <div class=\"bg-zinc-900 rounded-3xl w-full max-w-[580px] border border-zinc-700\">
+                <div class=\"flex justify-between items-center p-5 border-b border-zinc-700\">
+                    <h3 class=\"font-bold text-xl text-amber-300\"><i class=\"fas fa-user mr-2\"></i> Character Sheet</h3>
+                    <button onclick=\"document.getElementById('character-modal').style.display='none'\" class=\"text-2xl text-zinc-400 hover:text-white\">&times;</button>
                 </div>
-                <div class="p-5" id="character-content"></div>
+                <div class=\"p-5\" id=\"character-content\"></div>
             </div>
         `;
         document.body.appendChild(charModal);
@@ -375,31 +395,31 @@ function showCharacterModal() {
     const p = state.player;
 
     content.innerHTML = `
-        <div class="grid grid-cols-2 gap-4">
+        <div class=\"grid grid-cols-2 gap-4\">
             <div>
-                <div class="text-2xl font-bold text-amber-300">${p.name}</div>
-                <div class="text-sm text-zinc-400 mb-3">Level ${p.level || 1} Spellblade</div>
+                <div class=\"text-2xl font-bold text-amber-300\">${p.name}</div>
+                <div class=\"text-sm text-zinc-400 mb-3\">Level ${p.level || 1} Spellblade</div>
 
-                <div class="mb-3">
-                    <div class="text-xs text-zinc-400">EQUIPPED</div>
-                    <div class="mt-1"><b>Weapon:</b> ${p.weapon ? p.weapon.name : 'Rusty Sword'} (+${p.weapon ? p.weapon.bonus : 3})</div>
+                <div class=\"mb-3\">
+                    <div class=\"text-xs text-zinc-400\">EQUIPPED</div>
+                    <div class=\"mt-1\"><b>Weapon:</b> ${p.weapon ? p.weapon.name : 'Rusty Sword'} (+${p.weapon ? p.weapon.bonus : 3})</div>
                     <div><b>Armor:</b> ${p.armor ? p.armor.name : 'Cloth Tunic'} (+${p.armor ? p.armor.bonus : 1})</div>
                 </div>
 
-                <div class="text-xs text-zinc-400 mt-4">SPELLS</div>
-                <div class="text-sm">${(p.spells || []).join(', ') || 'Firebolt'}</div>
+                <div class=\"text-xs text-zinc-400 mt-4\">SPELLS</div>
+                <div class=\"text-sm\">${(p.spells || []).join(', ') || 'Firebolt'}</div>
             </div>
 
-            <div class="text-sm">
-                <div class="flex justify-between py-1"><span>HP</span> <span class="font-mono">${p.hp}/${p.maxHp}</span></div>
-                <div class="flex justify-between py-1"><span>MP</span> <span class="font-mono">${p.mp}/${p.maxMp}</span></div>
-                <div class="flex justify-between py-1"><span>XP</span> <span class="font-mono">${p.xp || 0}/100</span></div>
-                <div class="flex justify-between py-1"><span>Gold</span> <span class="font-mono text-yellow-400">${p.gold || 0}</span></div>
+            <div class=\"text-sm\">
+                <div class=\"flex justify-between py-1\"><span>HP</span> <span class=\"font-mono\">${p.hp}/${p.maxHp}</span></div>
+                <div class=\"flex justify-between py-1\"><span>MP</span> <span class=\"font-mono\">${p.mp}/${p.maxMp}</span></div>
+                <div class=\"flex justify-between py-1\"><span>XP</span> <span class=\"font-mono\">${p.xp || 0}/100</span></div>
+                <div class=\"flex justify-between py-1\"><span>Gold</span> <span class=\"font-mono text-yellow-400\">${p.gold || 0}</span></div>
 
-                <div class="mt-4 pt-3 border-t border-zinc-700">
-                    <div class="flex justify-between"><span>STR</span> <span class="font-bold">${p.str || 5}</span></div>
-                    <div class="flex justify-between"><span>INT</span> <span class="font-bold">${p.int || 5}</span></div>
-                    <div class="flex justify-between"><span>DEF</span> <span class="font-bold">${p.def || 3}</span></div>
+                <div class=\"mt-4 pt-3 border-t border-zinc-700\">
+                    <div class=\"flex justify-between\"><span>STR</span> <span class=\"font-bold\">${p.str || 5}</span></div>
+                    <div class=\"flex justify-between\"><span>INT</span> <span class=\"font-bold\">${p.int || 5}</span></div>
+                    <div class=\"flex justify-between\"><span>DEF</span> <span class=\"font-bold\">${p.def || 3}</span></div>
                 </div>
             </div>
         </div>
