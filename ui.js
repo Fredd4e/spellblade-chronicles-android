@@ -117,8 +117,8 @@ function renderActions() {
     let actions = [];
     if (loc === 'village') actions = [
         { label: 'Talk to Elder', icon: 'fa-user-tie', fn: () => startDialogue('elder') },
+        { label: 'Talk to Merchant', icon: 'fa-store', fn: () => startDialogue('merchant') },   // NEW
         { label: 'Explore the Square', icon: 'fa-search-location', fn: exploreVillage },
-        { label: 'Visit Shop', icon: 'fa-store', fn: showShop },
         { label: 'Travel to Woods', icon: 'fa-tree', fn: () => travel('woods') }
     ];
     else if (loc === 'woods') actions = [
@@ -143,14 +143,10 @@ function renderActions() {
     });
 }
 
-// ==================== NEW ENHANCED DIALOGUE SYSTEM ====================
+// ==================== ENHANCED DIALOGUE SYSTEM ====================
 
 let currentNpcKey = null;
 
-/**
- * Opens the dialogue modal for any NPC
- * Shows portrait, name, age, title + dynamic conditional buttons
- */
 function startDialogue(npcKey) {
     if (!window.Lore || !Lore.npcs || !Lore.npcs[npcKey]) {
         console.warn('NPC not found:', npcKey);
@@ -162,7 +158,6 @@ function startDialogue(npcKey) {
     const modal = $('dialogue-modal');
     if (!modal) return;
 
-    // Populate header
     const portrait = $('dialogue-npc-portrait');
     const nameEl = $('dialogue-npc-name');
     const ageEl = $('dialogue-npc-age');
@@ -174,19 +169,16 @@ function startDialogue(npcKey) {
         portrait.onerror = () => { portrait.style.display = 'none'; };
     }
     if (nameEl) nameEl.textContent = npc.name || 'Unknown';
-    if (ageEl) ageEl.innerHTML = npc.age ? `<i class="fas fa-user-clock mr-1"></i>Age ${npc.age}` : '';
+    if (ageEl) ageEl.innerHTML = npc.age ? `<i class=\"fas fa-user-clock mr-1\"></i>Age ${npc.age}` : '';
     if (titleEl) titleEl.textContent = npc.title || '';
 
-    // Initial greeting
     if (textEl) {
         textEl.innerHTML = `Hello, traveler. What brings you to speak with me today?`;
-        if (npcKey === 'elder') {
-            textEl.innerHTML = `The wards grow weaker by the day, Aether. We must act.`;
-        }
+        if (npcKey === 'elder') textEl.innerHTML = `The wards grow weaker by the day, Aether. We must act.`;
+        if (npcKey === 'merchant') textEl.innerHTML = `Ah, a fellow adventurer! Care to browse my wares?`;
     }
 
     renderDialogueOptions(npcKey, npc);
-
     modal.style.display = 'flex';
     modal.classList.remove('hidden');
 }
@@ -199,32 +191,24 @@ function renderDialogueOptions(npcKey, npc) {
     const addBtn = (label, icon, fn, enabled = true) => {
         const btn = document.createElement('button');
         btn.className = `rpg-btn flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-sm font-semibold ${enabled ? 'bg-zinc-800 hover:bg-emerald-700/80 active:bg-emerald-600' : 'bg-zinc-800/50 text-zinc-500 cursor-not-allowed'}`;
-        btn.innerHTML = `<i class="fas ${icon} mr-1.5"></i> <span>${label}</span>`;
+        btn.innerHTML = `<i class=\"fas ${icon} mr-1.5\"></i> <span>${label}</span>`;
         if (enabled) btn.onclick = fn;
         container.appendChild(btn);
     };
 
-    // Always available
     addBtn('Talk', 'fa-comments', () => dialogueTalk(npcKey));
     addBtn('Goodbye', 'fa-door-open', closeDialogue);
 
-    // Conditional options
-    if (npc.hasQuests) {
-        addBtn('Quests', 'fa-scroll', () => dialogueQuests(npcKey));
-    }
-    if (npc.hasShop) {
-        addBtn('Shop', 'fa-store', () => dialogueShop(npcKey));
-    }
+    if (npc.hasQuests) addBtn('Quests', 'fa-scroll', () => dialogueQuests(npcKey));
+    if (npc.hasShop)   addBtn('Shop', 'fa-store', () => dialogueShop(npcKey));
 }
 
 function dialogueTalk(npcKey) {
     const textEl = $('dialogue-text');
     const npc = Lore.npcs[npcKey];
-
     let message = "It is good to speak with you.";
 
     if (npcKey === 'elder') {
-        // Use existing staged dialogue logic
         const elder = Lore.elder || {};
         let dialogueLines = elder.default || [];
 
@@ -244,12 +228,12 @@ function dialogueTalk(npcKey) {
         }
 
         if (dialogueLines.length > 0) {
-            message = dialogueLines[0]; // show first line in modal
+            message = dialogueLines[0];
             dialogueLines.forEach(line => log(line, true));
         }
-    } else {
-        message = `Nice to meet you, ${state.player.name || 'traveler'}.`;
-        log(`<b>${npc.name}:</b> Nice to meet you.`, true);
+    } else if (npcKey === 'merchant') {
+        message = `Welcome to my shop, ${state.player.name || 'traveler'}! I have fine goods from across the lands.`;
+        log(`<b>Merchant:</b> Welcome! Take a look at my wares.`, true);
     }
 
     if (textEl) textEl.innerHTML = message;
@@ -260,21 +244,14 @@ function dialogueTalk(npcKey) {
 function dialogueQuests(npcKey) {
     const textEl = $('dialogue-text');
     if (npcKey === 'elder') {
-        if (textEl) textEl.innerHTML = `Current Quest: <b>Beast Slayer</b><br>Slay at least 3 corrupted beasts in the woods.<br><br>Progress: ${state.kills || 0}/3`;
+        if (textEl) textEl.innerHTML = `Current Quest: <b>Beast Slayer</b><br>Slay at least 3 corrupted beasts.<br>Progress: ${state.kills || 0}/3`;
         log("<b>Elder:</b> Bring me news once you have slain three beasts.", true);
-    } else {
-        if (textEl) textEl.innerHTML = "I have no quests for you at the moment.";
     }
 }
 
 function dialogueShop(npcKey) {
     closeDialogue();
-    // For now open the simple shop alert. Later we can make a full shop modal.
-    if (typeof showShop === 'function') {
-        showShop();
-    } else {
-        alert('The merchant shows you his wares... (Shop coming soon)');
-    }
+    showShopModal();   // NEW proper shop modal
 }
 
 function closeDialogue() {
@@ -284,13 +261,171 @@ function closeDialogue() {
         modal.classList.add('hidden');
     }
     currentNpcKey = null;
-    // Optional: re-render actions in case quest state changed
     if (typeof renderActions === 'function') renderActions();
 }
 
-// ==================== END DIALOGUE SYSTEM ====================
+// ==================== PROPER SHOP MODAL ====================
 
-// Inventory & Shop
+function showShopModal() {
+    let shopModal = document.getElementById('shop-modal');
+    if (!shopModal) {
+        shopModal = document.createElement('div');
+        shopModal.id = 'shop-modal';
+        shopModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
+        shopModal.innerHTML = `
+            <div class="bg-zinc-900 rounded-3xl w-full max-w-[620px] border border-zinc-700">
+                <div class="flex justify-between items-center p-5 border-b border-zinc-700">
+                    <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-store mr-2"></i> Merchant's Wares</h3>
+                    <button onclick="document.getElementById('shop-modal').style.display='none'" class="text-2xl leading-none text-zinc-400 hover:text-white">&times;</button>
+                </div>
+                <div class="p-5 max-h-[420px] overflow-auto" id="shop-items"></div>
+                <div class="p-4 border-t border-zinc-700 text-right text-sm">
+                    Your Gold: <span id="shop-gold" class="font-bold text-yellow-400"></span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(shopModal);
+    }
+
+    const container = document.getElementById('shop-items');
+    const goldEl = document.getElementById('shop-gold');
+    container.innerHTML = '';
+    if (goldEl) goldEl.textContent = state.player.gold || 0;
+
+    if (!window.Lore || !Lore.shopItems) return;
+
+    Lore.shopItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-3 mb-2 bg-zinc-800 rounded-2xl';
+        div.innerHTML = `
+            <div>
+                <div class="font-semibold">${item.name}</div>
+                <div class="text-xs text-zinc-400">${item.effect || ''}</div>
+            </div>
+            <div class="text-right">
+                <div class="text-yellow-400 font-bold">${item.price}g</div>
+                <button class="mt-1 px-4 py-1 text-sm bg-emerald-700 hover:bg-emerald-600 rounded-xl" data-index="${index}">Buy</button>
+            </div>
+        `;
+
+        const buyBtn = div.querySelector('button');
+        buyBtn.onclick = () => buyItem(item, buyBtn);
+
+        container.appendChild(div);
+    });
+
+    shopModal.style.display = 'flex';
+}
+
+function buyItem(item, button) {
+    const gold = state.player.gold || 0;
+    if (gold < item.price) {
+        alert("You don't have enough gold.");
+        return;
+    }
+
+    state.player.gold -= item.price;
+
+    if (item.type === 'spell') {
+        if (!state.player.spells.includes('Ice Shard')) {
+            state.player.spells.push('Ice Shard');
+            log(`You learned <b>${item.name}</b>!`, true);
+        } else {
+            log('You already know this spell.', true);
+        }
+    } else if (item.type === 'weapon' || item.type === 'armor') {
+        if (item.type === 'weapon') state.player.weapon = { name: item.name, bonus: item.bonus };
+        if (item.type === 'armor') {
+            state.player.armor = { name: item.name, bonus: item.bonus };
+            if (item.isSpecial) {
+                state.player.maxHp = (state.player.maxHp || 50) + (item.healthBonus || 0);
+                state.player.maxMp = (state.player.maxMp || 20) + (item.manaBonus || 0);
+                state.player.hp = state.player.maxHp;
+                state.player.mp = state.player.maxMp;
+            }
+        }
+        log(`Equipped <b>${item.name}</b>.`, true);
+    } else {
+        addToInventory({ name: item.name, type: item.type, bonus: item.bonus, desc: item.effect || '' });
+        log(`Purchased <b>${item.name}</b>.`, true);
+    }
+
+    updateAll();
+    save();
+
+    // Refresh shop gold display
+    const goldEl = document.getElementById('shop-gold');
+    if (goldEl) goldEl.textContent = state.player.gold;
+
+    button.textContent = 'Bought';
+    button.disabled = true;
+    button.classList.add('opacity-50');
+}
+
+// ==================== CHARACTER MODAL ====================
+
+function showStats() {
+    showCharacterModal();
+}
+
+function showCharacterModal() {
+    let charModal = document.getElementById('character-modal');
+    if (!charModal) {
+        charModal = document.createElement('div');
+        charModal.id = 'character-modal';
+        charModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
+        charModal.innerHTML = `
+            <div class="bg-zinc-900 rounded-3xl w-full max-w-[580px] border border-zinc-700">
+                <div class="flex justify-between items-center p-5 border-b border-zinc-700">
+                    <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-user mr-2"></i> Character Sheet</h3>
+                    <button onclick="document.getElementById('character-modal').style.display='none'" class="text-2xl text-zinc-400 hover:text-white">&times;</button>
+                </div>
+                <div class="p-5" id="character-content"></div>
+            </div>
+        `;
+        document.body.appendChild(charModal);
+    }
+
+    const content = document.getElementById('character-content');
+    const p = state.player;
+
+    content.innerHTML = `
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Left: Info -->
+            <div>
+                <div class="text-2xl font-bold text-amber-300">${p.name}</div>
+                <div class="text-sm text-zinc-400 mb-3">Level ${p.level || 1} Spellblade</div>
+
+                <div class="mb-3">
+                    <div class="text-xs text-zinc-400">EQUIPPED</div>
+                    <div class="mt-1"><b>Weapon:</b> ${p.weapon ? p.weapon.name : 'Rusty Sword'} (+${p.weapon ? p.weapon.bonus : 3})</div>
+                    <div><b>Armor:</b> ${p.armor ? p.armor.name : 'Cloth Tunic'} (+${p.armor ? p.armor.bonus : 1})</div>
+                </div>
+
+                <div class="text-xs text-zinc-400 mt-4">SPELLS</div>
+                <div class="text-sm">${(p.spells || []).join(', ') || 'Firebolt'}</div>
+            </div>
+
+            <!-- Right: Stats -->
+            <div class="text-sm">
+                <div class="flex justify-between py-1"><span>HP</span> <span class="font-mono">${p.hp}/${p.maxHp}</span></div>
+                <div class="flex justify-between py-1"><span>MP</span> <span class="font-mono">${p.mp}/${p.maxMp}</span></div>
+                <div class="flex justify-between py-1"><span>XP</span> <span class="font-mono">${p.xp || 0}/100</span></div>
+                <div class="flex justify-between py-1"><span>Gold</span> <span class="font-mono text-yellow-400">${p.gold || 0}</span></div>
+
+                <div class="mt-4 pt-3 border-t border-zinc-700">
+                    <div class="flex justify-between"><span>STR</span> <span class="font-bold">${p.str || 5}</span></div>
+                    <div class="flex justify-between"><span>INT</span> <span class="font-bold">${p.int || 5}</span></div>
+                    <div class="flex justify-between"><span>DEF</span> <span class="font-bold">${p.def || 3}</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    charModal.style.display = 'flex';
+}
+
+// ==================== INVENTORY (existing) ====================
 
 function showInventory(){ 
     let m=document.getElementById('inv-m'); 
@@ -312,21 +447,6 @@ function useInvItem(i){ const it=state.inventory[i]; if(!it) return; if(it.type=
 function dropInvItem(i){ state.inventory.splice(i,1); hideInv(); updateAll(); save(); setTimeout(showInventory,80); }
 
 function addToInventory(it){ if(!state.inventory) state.inventory=[]; state.inventory.push(it); }
-
-function showShop(){ alert('Shop: Buy items in village (simple version). Use Inventory button and talk to NPCs for progression. Full shop UI coming soon.'); }
-
-function showStats(){ const p=state.player; alert(`Character: ${p.name} L${p.level}\nHP:${p.hp}/${p.maxHp} MP:${p.mp}/${p.maxMp}\nSTR:${p.str} INT:${p.int} DEF:${p.def}\nWeapon: ${p.weapon?p.weapon.name:'Rusty Sword'}\nSpells: ${(p.spells||[]).join(', ')}`); }
-
-function renameCharacter(){ const n=prompt('New name?', state.player.name); if(n){ state.player.name=n; updateStats(); save(); } }
-
-function exportLogs(){ const txt=(state.story||[]).map(s=>s.msg).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'})); a.download='logs.txt'; a.click(); }
-
-function showMap(){ const m=$('map-modal'); if(m){ m.style.display='flex'; m.classList.remove('hidden'); } }
-function hideMap(){ const m=$('map-modal'); if(m){ m.style.display='none'; m.classList.add('hidden'); } }
-let mz=1; function zoomMap(d){ mz=Math.max(0.5,Math.min(3,mz+d)); const c=$('map-content'); if(c) c.style.transform=`scale(${mz})`; if($('zoom-level')) $('zoom-level').textContent=Math.round(mz*100)+'%'; }
-function resetMapZoom(){ mz=1; const c=$('map-content'); if(c) c.style.transform='scale(1)'; if($('zoom-level')) $('zoom-level').textContent='100%'; }
-
-function initializeGameEnhancements(){ console.log('Enhancements ready'); }
 
 // Safety
 if(typeof window.updateAll!=='function') window.updateAll=()=> { if(typeof updateStats==='function')updateStats(); if(typeof renderActions==='function')renderActions(); if(typeof renderStory==='function')renderStory(); };
