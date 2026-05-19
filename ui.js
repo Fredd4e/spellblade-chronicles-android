@@ -219,8 +219,19 @@ function dialogueTalk(npcKey) {
             state.player.xp = (state.player.xp || 0) + 30;
             log('Quest complete! +40 Gold +30 XP', true);
             if (typeof checkLevelUp === 'function') checkLevelUp();
+        } else if (state.quest === 2 && (state.templeProgress || 0) >= 1) {
+            // Temple quest completion
+            dialogueLines = ["<b>Elder:</b> 'You have braved the Ruined Temple. The shadows there are ancient... Take this reward and stay vigilant.'"];
+            state.quest = 3;
+            state.player.gold = (state.player.gold || 0) + 75;
+            state.player.xp = (state.player.xp || 0) + 50;
+            log('Temple Secrets quest complete! +75 Gold +50 XP', true);
+            if (typeof checkLevelUp === 'function') checkLevelUp();
         } else if (state.quest >= 2) {
             dialogueLines = elder.stage2 || dialogueLines;
+            if ((state.templeProgress || 0) < 1) {
+                log("<b>Elder:</b> 'The Ruined Temple holds dark secrets. Explore it to learn more.'", true);
+            }
         }
 
         if (dialogueLines.length > 0) {
@@ -250,8 +261,12 @@ function dialogueTalk(npcKey) {
 function dialogueQuests(npcKey) {
     const textEl = $('dialogue-text');
     if (npcKey === 'elder') {
-        if (textEl) textEl.innerHTML = `Current Quest: <b>Beast Slayer</b><br>Slay at least 3 corrupted beasts.<br>Progress: ${state.kills || 0}/3`;
-        log("<b>Elder:</b> Bring me news once you have slain three beasts.", true);
+        let qText = `Current Quest: <b>Beast Slayer</b><br>Slay at least 3 corrupted beasts.<br>Progress: ${state.kills || 0}/3`;
+        if (state.quest >= 2) {
+            qText += `<br><br>Investigate the <b>Ruined Temple</b> (Progress: ${state.templeProgress || 0}/1)`;
+        }
+        if (textEl) textEl.innerHTML = qText;
+        log("<b>Elder:</b> Bring me news of your progress.", true);
     }
 }
 
@@ -333,11 +348,16 @@ function buyItem(item, button) {
     state.player.gold -= item.price;
 
     if (item.type === 'spell') {
-        if (!state.player.spells.includes('Ice Shard')) {
-            state.player.spells.push('Ice Shard');
-            log(`You learned <b>${item.name}</b>!`, true);
+        // More robust spell learning
+        let spellName = 'Ice Shard';
+        if (item.name && item.name.includes('Ice Shard')) spellName = 'Ice Shard';
+        else if (item.name) spellName = item.name.replace(/Spell Tome:?\s*/i, '').trim();
+        if (!state.player.spells.includes(spellName)) {
+            state.player.spells.push(spellName);
+            log(`You learned <b>${spellName}</b>!`, true);
         } else {
             log('You already know this spell.', true);
+            // refund if already known? optional, for now keep payment as is
         }
     } else if (item.type === 'weapon' || item.type === 'armor') {
         if (item.type === 'weapon') state.player.weapon = { name: item.name, bonus: item.bonus };
@@ -423,6 +443,10 @@ function showCharacterModal() {
                 </div>
             </div>
         </div>
+
+        <div class=\"mt-4 text-center\">
+            <button onclick=\"renameCharacter(); document.getElementById('character-modal').style.display='none';\" class=\"px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-xl text-sm\">Rename Character</button>
+        </div>
     `;
 
     charModal.style.display = 'flex';
@@ -486,6 +510,18 @@ function useInvItem(i){ const it=state.inventory[i]; if(!it) return; if(it.type=
 function dropInvItem(i){ state.inventory.splice(i,1); hideInv(); updateAll(); save(); setTimeout(showInventory,80); }
 
 function addToInventory(it){ if(!state.inventory) state.inventory=[]; state.inventory.push(it); }
+
+// NEW: renameCharacter function (fixes missing onclick in header)
+function renameCharacter() {
+    const current = (state.player && state.player.name) || 'Aether';
+    const newName = prompt('Enter a new name for your Spellblade:', current);
+    if (newName && newName.trim().length > 0) {
+        state.player.name = newName.trim();
+        if (typeof updateStats === 'function') updateStats();
+        if (typeof save === 'function') save();
+        if (typeof log === 'function') log(`Your name is now <b>${state.player.name}</b>.`, true);
+    }
+}
 
 // Safety
 if(typeof window.updateAll!=='function') window.updateAll=()=> { if(typeof updateStats==='function')updateStats(); if(typeof renderActions==='function')renderActions(); if(typeof renderStory==='function')renderStory(); };
