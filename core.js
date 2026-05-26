@@ -13,8 +13,10 @@ let state = {
         str: 5,
         int: 5,
         def: 3,
-        weapon: { name: "Rusty Sword", bonus: 3 },
-        armor: { name: "Cloth Tunic", bonus: 1 },
+        dex: 5,                    // New: affects block chance, crit chance, and feel
+        weapon: { name: "Rusty Sword", bonus: 3, image: "assets/items/rusty-sword.jpg" },
+        armor: { name: "Cloth Tunic", bonus: 1, image: "assets/items/cloth-tunic.jpg" },
+        shield: null,              // New equipment slot: { name, blockChance, image }
         spells: ["Firebolt"]
     },
     inventory: [
@@ -56,7 +58,11 @@ function log(msg, important = false) {
 }
 
 function save() {
-    localStorage.setItem('spellblade_v3', JSON.stringify(state));
+    try {
+        localStorage.setItem('spellblade_v3', JSON.stringify(state));
+    } catch (e) {
+        console.warn('Save failed (storage full or private mode?)', e);
+    }
 }
 
 function load() {
@@ -81,15 +87,22 @@ function load() {
                     str: p.str || 5,
                     int: p.int || 5,
                     def: p.def || 3,
-                    weapon: p.weapon || { name: "Rusty Sword", bonus: 3 },
-                    armor: p.armor || { name: "Cloth Tunic", bonus: 1 },
+                    dex: p.dex || 5,
+                    weapon: p.weapon ? { ...p.weapon, image: p.weapon.image || "assets/items/rusty-sword.jpg" } : { name: "Rusty Sword", bonus: 3, image: "assets/items/rusty-sword.jpg" },
+                    armor: p.armor ? { ...p.armor, image: p.armor.image || "assets/items/cloth-tunic.jpg" } : { name: "Cloth Tunic", bonus: 1, image: "assets/items/cloth-tunic.jpg" },
+                    shield: p.shield ? { ...p.shield, image: p.shield.image } : null,
                     spells: Array.isArray(p.spells) ? p.spells : ["Firebolt"]
                 };
             }
 
             // Ensure locationName exists
             if (!state.locationName && state.location) {
-                const nameMap = { village: "Eldoria Village Square", woods: "Whispering Woods", ruins: "Ruined Temple" };
+                const nameMap = {
+                    village: "Eldoria Village Square",
+                    woods: "Whispering Woods",
+                    ruins: "Ruined Temple",
+                    church: "Church of the Silver Light"
+                };
                 state.locationName = nameMap[state.location] || state.location;
             }
 

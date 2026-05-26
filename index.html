@@ -77,6 +77,7 @@
         <div class="font-bold"><i class="fas fa-map-marker-alt text-emerald-400"></i> <span id="location">Eldoria Village Square</span></div>
         <div class="flex gap-2">
             <button onclick="exportLogs()" class="text-xs px-3 py-1 bg-zinc-800 rounded-full">Logs</button>
+            <button onclick="showQuestJournal()" class="text-xs px-3 py-1 bg-zinc-800 rounded-full">Quests</button>
             <button onclick="showMap()" class="px-3 py-1 bg-zinc-800 rounded-full text-sm"><i class="fas fa-map"></i> Map</button>
         </div>
     </div>
@@ -173,11 +174,12 @@
         <!-- NPC Header with Portrait -->
         <div class="flex gap-4 p-5 bg-zinc-950/70 border-b border-zinc-700">
             <div class="flex-shrink-0">
-                <img id="dialogue-npc-portrait" class="npc-portrait w-20 h-20 object-cover rounded-2xl border-2 border-amber-600/60" alt="NPC Portrait">
+                <img id="dialogue-npc-portrait" class="npc-portrait w-24 h-24 object-cover rounded-2xl border-2 border-amber-600/60" alt="NPC Portrait">
             </div>
             <div class="flex-1 min-w-0 pt-1">
                 <div id="dialogue-npc-name" class="font-bold text-2xl text-amber-300"></div>
                 <div id="dialogue-npc-age" class="text-sm text-zinc-400"></div>
+                <div id="dialogue-npc-marital" class="text-xs text-zinc-400 mt-0.5"></div>
                 <div id="dialogue-npc-title" class="text-xs text-zinc-500 mt-0.5"></div>
             </div>
             <div>
