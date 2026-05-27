@@ -146,8 +146,10 @@ function renderCombatButtons() {
         const progress = cd > 0 ? (cd / maxCd) : 0;
         const angle = Math.floor(progress * 360);
 
+        const iconPath = `assets/spells/${spellName.toLowerCase().replace(' ', '_')}.jpg`;
+
         const btn = document.createElement('button');
-        let cls = `fantasy-btn spell-btn py-2.5 px-3 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5`;
+        let cls = `fantasy-btn spell-btn py-1.5 px-2 text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-0.5 relative`;
         if (variant === 'fire') cls += ' btn-spell-fire';
         else if (variant === 'ice') cls += ' btn-spell-ice';
         else if (variant === 'heal') cls += ' btn-spell-heal';
@@ -155,10 +157,11 @@ function renderCombatButtons() {
 
         btn.className = cls;
         btn.innerHTML = `
-            <span class="relative z-10">${icon}${spellName}</span>
+            <img src="${iconPath}" class="w-8 h-8 object-contain relative z-10" onerror="this.style.display='none'">
+            <span class="text-[10px] leading-none relative z-10">${spellName}</span>
             ${cd > 0 ? `
                 <div class="cooldown-overlay" style="--cd-angle: ${angle}deg;"></div>
-                <div class="cooldown-text">${cd}</div>
+                <div class="cooldown-text text-sm">${cd}</div>
             ` : ''}
         `;
 

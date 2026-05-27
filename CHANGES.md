@@ -2,6 +2,18 @@
 
 > All changes made locally only. No git push performed.
 
+## Spellbook System + Custom Icons
+- Complete overhaul of the magic UI:
+  - Character window now has proper **tabs**: "Character" and "Spellbook" (WoW-style).
+  - **Spellbook tab** shows:
+    - Two active spell slots with actual spell icons
+    - Full spellbook list with icons
+    - Click-to-assign system for equipping spells to slots
+- **Custom spell icons** generated for all 4 spells (Firebolt, Ice Shard, Heal, Divine Light) in matching dark fantasy style.
+- Added a beautiful dark fantasy **spellbook background** used in the Spellbook tab.
+- In combat, active spell slots now display as proper **icon buttons** (with cooldown pie overlays still working on top).
+- Major improvement to how players interact with and visualize their spells.
+
 ## Spell Cooldown System Overhaul
 - Added proper **World of Warcraft-style pie/clock cooldown overlays** on spell buttons in combat.
   - Dark sweeping conic-gradient overlay that shrinks as cooldown ticks down.

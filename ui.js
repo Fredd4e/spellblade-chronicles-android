@@ -686,118 +686,173 @@ function showCharacterModal() {
         charModal.id = 'character-modal';
         charModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         charModal.innerHTML = `
-            <div class="fantasy-modal rounded-3xl w-full max-w-[580px]">
+            <div class="fantasy-modal rounded-3xl w-full max-w-[620px]">
+                <!-- Header with Tabs -->
                 <div class="flex justify-between items-center p-5 fantasy-modal-header border-b border-amber-900/30">
-                    <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-user mr-2"></i> Character Sheet</h3>
-                    <button onclick="document.getElementById('character-modal').style.display='none'" class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
+                    <div class="flex gap-1">
+                        <div onclick="switchCharacterTab('character')" id="tab-character"
+                             class="tab-button active px-5 py-1.5 text-sm font-semibold rounded-t cursor-pointer border-b-2 border-amber-400 text-amber-300">
+                            Character
+                        </div>
+                        <div onclick="switchCharacterTab('spellbook')" id="tab-spellbook"
+                             class="tab-button px-5 py-1.5 text-sm font-semibold rounded-t cursor-pointer text-zinc-400 hover:text-amber-200">
+                            Spellbook
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('character-modal').style.display='none'" 
+                            class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
                 </div>
+                
                 <div class="p-5 bg-[#161410]" id="character-content"></div>
             </div>
         `;
         document.body.appendChild(charModal);
     }
 
-    const content = document.getElementById('character-content');
-    const p = state.player;
+    // Store current tab on the modal element
+    if (!charModal.dataset.currentTab) {
+        charModal.dataset.currentTab = 'character';
+    }
 
+    renderCharacterContent(charModal.dataset.currentTab);
+    charModal.style.display = 'flex';
+}
+
+function switchCharacterTab(tab) {
+    const modal = document.getElementById('character-modal');
+    if (!modal) return;
+
+    modal.dataset.currentTab = tab;
+    renderCharacterContent(tab);
+
+    // Update tab styles
+    const charTab = document.getElementById('tab-character');
+    const spellTab = document.getElementById('tab-spellbook');
+
+    if (tab === 'character') {
+        charTab.classList.add('active', 'border-b-2', 'border-amber-400', 'text-amber-300');
+        charTab.classList.remove('text-zinc-400');
+        spellTab.classList.remove('active', 'border-b-2', 'border-amber-400', 'text-amber-300');
+        spellTab.classList.add('text-zinc-400');
+    } else {
+        spellTab.classList.add('active', 'border-b-2', 'border-amber-400', 'text-amber-300');
+        spellTab.classList.remove('text-zinc-400');
+        charTab.classList.remove('active', 'border-b-2', 'border-amber-400', 'text-amber-300');
+        charTab.classList.add('text-zinc-400');
+    }
+}
+
+function renderCharacterContent(tab) {
+    const content = document.getElementById('character-content');
+    if (!content) return;
+
+    const p = state.player;
     const blockChance = (typeof getPlayerBlockChance === 'function') ? getPlayerBlockChance() : 8;
     const critChance = (typeof getPlayerCritChance === 'function') ? getPlayerCritChance() : 7;
-
     const shieldText = p.shield ? `${p.shield.name} (+${p.shield.blockChance || 15}% Block)` : 'None equipped';
 
-    content.innerHTML = `
-        <div class="grid grid-cols-2 gap-4">
-            <!-- Left: Identity + Gear -->
-            <div>
-                <div class="text-2xl font-bold text-amber-300">${p.name}</div>
-                <div class="text-sm text-zinc-400 mb-3">Level ${p.level || 1} Spellblade</div>
+    if (tab === 'character') {
+        content.innerHTML = `
+            <div class="grid grid-cols-2 gap-5">
+                <!-- Left Column -->
+                <div>
+                    <div class="text-2xl font-bold text-amber-300">${p.name}</div>
+                    <div class="text-sm text-zinc-400 mb-4">Level ${p.level || 1} Spellblade</div>
 
-                <div class="mb-3">
-                    <div class="text-xs text-zinc-400 font-semibold mb-1">EQUIPPED</div>
-                    <div class="text-sm space-y-1">
-                        <div class="flex items-center gap-2">
-                            <img src="${p.weapon && p.weapon.image ? p.weapon.image : 'assets/items/rusty-sword.jpg'}" class="w-7 h-7 object-cover rounded border border-zinc-700" alt="Weapon" onerror="this.style.display='none'">
-                            <span><b>Weapon:</b> ${p.weapon ? p.weapon.name : 'Rusty Sword'} <span class="text-emerald-400">(+${p.weapon ? p.weapon.bonus : 3})</span></span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <img src="${p.armor && p.armor.image ? p.armor.image : 'assets/items/cloth-tunic.jpg'}" class="w-7 h-7 object-cover rounded border border-zinc-700" alt="Armor" onerror="this.style.display='none'">
-                            <span><b>Armor:</b> ${p.armor ? p.armor.name : 'Cloth Tunic'} <span class="text-emerald-400">(+${p.armor ? p.armor.bonus : 1})</span></span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <img src="${p.shield && p.shield.image ? p.shield.image : 'assets/items/wooden-shield.jpg'}" class="w-7 h-7 object-cover rounded border border-zinc-700" alt="Shield" onerror="this.style.display='none'">
-                            <span><b>Shield:</b> ${shieldText}</span>
+                    <div class="mb-4">
+                        <div class="text-xs text-zinc-400 font-semibold mb-1.5">EQUIPPED</div>
+                        <div class="text-sm space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <img src="${p.weapon?.image || 'assets/items/rusty-sword.jpg'}" class="w-8 h-8 object-cover rounded border border-zinc-700" alt="">
+                                <span><b>Weapon:</b> ${p.weapon?.name || 'Rusty Sword'} <span class="text-emerald-400">(+${p.weapon?.bonus || 3})</span></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <img src="${p.armor?.image || 'assets/items/cloth-tunic.jpg'}" class="w-8 h-8 object-cover rounded border border-zinc-700" alt="">
+                                <span><b>Armor:</b> ${p.armor?.name || 'Cloth Tunic'} <span class="text-emerald-400">(+${p.armor?.bonus || 1})</span></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <img src="${p.shield?.image || 'assets/items/wooden-shield.jpg'}" class="w-8 h-8 object-cover rounded border border-zinc-700" alt="">
+                                <span><b>Shield:</b> ${shieldText}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-xs text-amber-400 mt-4 mb-1 font-semibold">ACTIVE SPELL SLOTS (Combat)</div>
-                <div class="flex gap-2 mb-3">
+                <!-- Right Column: Stats -->
+                <div class="text-sm">
+                    <div class="flex justify-between py-0.5"><span>HP</span> <span class="font-mono">${p.hp}/${p.maxHp}</span></div>
+                    <div class="flex justify-between py-0.5"><span>MP</span> <span class="font-mono">${p.mp}/${p.maxMp}</span></div>
+                    <div class="flex justify-between py-0.5"><span>XP</span> <span class="font-mono">${p.xp || 0}/100</span></div>
+                    <div class="flex justify-between py-0.5"><span>Gold</span> <span class="font-mono text-yellow-400">${p.gold || 0}</span></div>
+
+                    <div class="mt-3 pt-2 border-t border-amber-900/30 text-[13px]">
+                        <div class="font-semibold text-xs text-zinc-400 mb-1">CORE STATS</div>
+                        <div class="flex justify-between py-0.5"><span>STR</span> <span class="font-bold">${p.str || 5}</span></div>
+                        <div class="flex justify-between py-0.5"><span>INT</span> <span class="font-bold">${p.int || 5}</span></div>
+                        <div class="flex justify-between py-0.5"><span>DEF</span> <span class="font-bold">${p.def || 3}</span></div>
+                        <div class="flex justify-between py-0.5"><span>DEX</span> <span class="font-bold">${p.dex || 5}</span></div>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-zinc-700 text-xs">
+                        <div class="font-semibold text-emerald-300 mb-1">COMBAT STATS</div>
+                        <div class="flex justify-between"><span>Block Chance</span> <span class="font-bold text-emerald-400">${blockChance}%</span></div>
+                        <div class="flex justify-between"><span>Crit Chance</span> <span class="font-bold text-amber-400">${critChance}%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-zinc-700 text-[11px] text-zinc-500">
+                <b>Block</b>: Greatly reduces damage with a shield. &nbsp;&nbsp; <b>Crit</b>: 65% extra damage on attacks.
+            </div>
+        `;
+    } 
+    else if (tab === 'spellbook') {
+        // Spellbook Tab
+        const slots = p.spellSlots || [null, null];
+        const knownSpells = p.spells || [];
+
+        content.innerHTML = `
+            <div class="mb-4">
+                <div class="text-amber-400 text-sm font-semibold mb-2">ACTIVE SPELL SLOTS</div>
+                <div class="flex gap-3">
                     ${[0,1].map(i => {
-                        const spell = (p.spellSlots && p.spellSlots[i]) || null;
-                        return `<button onclick="assignSpellToSlot(${i})" class="flex-1 px-3 py-1 text-xs rounded border ${spell ? 'bg-[#2a2119] border-amber-700 text-amber-200' : 'bg-zinc-800 border-zinc-600 text-zinc-400'}">
-                            ${spell || 'Empty Slot'}
-                        </button>`;
+                        const spell = slots[i];
+                        const iconPath = spell ? `assets/spells/${spell.toLowerCase().replace(' ', '_')}.jpg` : null;
+                        return `
+                            <div onclick="assignSpellToSlot(${i})" 
+                                 class="flex-1 h-[78px] flex flex-col items-center justify-center rounded-xl border cursor-pointer transition-all
+                                 ${spell ? 'border-amber-600 bg-[#1f1a16]' : 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700'}">
+                                ${spell 
+                                    ? `<img src="${iconPath}" class="w-11 h-11 object-contain" onerror="this.style.display='none'">
+                                       <div class="text-[10px] text-amber-200 leading-none mt-0.5">${spell}</div>` 
+                                    : `<div class="text-zinc-400 text-xs">Empty Slot</div>`}
+                            </div>`;
                     }).join('')}
                 </div>
-
-                <div class="text-xs text-amber-400 mb-1 font-semibold">SPELLBOOK (Known Spells)</div>
-                <div class="text-xs flex flex-wrap gap-1">
-                    ${(p.spells || []).map(sp => 
-                        `<span onclick="quickAssignSpell('${sp}')" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded cursor-pointer text-[10px]">${sp}</span>`
-                    ).join('') || '<span class="text-zinc-500">No spells known</span>'}
-                </div>
             </div>
 
-            <!-- Right: Stats with explanations -->
-            <div class="text-sm">
-                <div class="flex justify-between py-0.5"><span>HP</span> <span class="font-mono">${p.hp}/${p.maxHp}</span></div>
-                <div class="flex justify-between py-0.5"><span>MP</span> <span class="font-mono">${p.mp}/${p.maxMp}</span></div>
-                <div class="flex justify-between py-0.5"><span>XP</span> <span class="font-mono">${p.xp || 0}/100</span></div>
-                <div class="flex justify-between py-0.5"><span>Gold</span> <span class="font-mono text-yellow-400">${p.gold || 0}</span></div>
-
-                <div class="mt-3 pt-2 border-t border-amber-900/30 text-[13px]">
-                    <div class="font-semibold text-xs text-zinc-400 mb-1">CORE STATS</div>
-
-                    <div class="flex justify-between py-0.5" title="Increases melee damage and carry weight feel">
-                        <span>STR <span class="text-[10px] text-zinc-500">(Strength)</span></span>
-                        <span class="font-bold">${p.str || 5}</span>
-                    </div>
-                    <div class="text-[10px] text-zinc-500 -mt-1 mb-1">Melee damage</div>
-
-                    <div class="flex justify-between py-0.5" title="Increases spell damage and maximum MP">
-                        <span>INT <span class="text-[10px] text-zinc-500">(Intelligence)</span></span>
-                        <span class="font-bold">${p.int || 5}</span>
-                    </div>
-                    <div class="text-[10px] text-zinc-500 -mt-1 mb-1">Spell power &amp; mana</div>
-
-                    <div class="flex justify-between py-0.5" title="Reduces damage taken from attacks">
-                        <span>DEF <span class="text-[10px] text-zinc-500">(Defense)</span></span>
-                        <span class="font-bold">${p.def || 3}</span>
-                    </div>
-                    <div class="text-[10px] text-zinc-500 -mt-1 mb-1">Physical resistance</div>
-
-                    <div class="flex justify-between py-0.5" title="Improves block chance, crit chance, and agility">
-                        <span>DEX <span class="text-[10px] text-zinc-500">(Dexterity)</span></span>
-                        <span class="font-bold">${p.dex || 5}</span>
-                    </div>
-                    <div class="text-[10px] text-zinc-500 -mt-1 mb-1">Block &amp; critical chance</div>
+            <div style="background-image: url('assets/spells/spellbook_bg.jpg'); background-size: cover; background-position: center; border-radius: 8px; padding: 8px; background-color: rgba(20,17,14,0.85); background-blend-mode: multiply;">
+                <div class="text-amber-400 text-sm font-semibold mb-2 px-1">SPELLBOOK</div>
+                <div class="grid grid-cols-2 gap-2">
+                    ${knownSpells.map(spell => {
+                        const iconPath = `assets/spells/${spell.toLowerCase().replace(' ', '_')}.jpg`;
+                        const isEquipped = slots.includes(spell);
+                        return `
+                            <div onclick="quickAssignSpell('${spell}')" 
+                                 class="flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all hover:bg-[#25221e]
+                                 ${isEquipped ? 'border-amber-600 bg-[#1f1a16]' : 'border-zinc-700 bg-zinc-800'}">
+                                <img src="${iconPath}" class="w-10 h-10 object-contain" onerror="this.style.display='none'">
+                                <div>
+                                    <div class="text-sm text-amber-100">${spell}</div>
+                                    <div class="text-[10px] text-zinc-500">${isEquipped ? 'Equipped' : 'Click to equip'}</div>
+                                </div>
+                            </div>`;
+                    }).join('')}
                 </div>
-
-                <div class="mt-3 pt-2 border-t border-zinc-700 text-xs">
-                    <div class="font-semibold text-emerald-300 mb-1">COMBAT STATS</div>
-                    <div class="flex justify-between"><span>Block Chance</span> <span class="font-bold text-emerald-400">${blockChance}%</span></div>
-                    <div class="flex justify-between"><span>Crit Chance</span> <span class="font-bold text-amber-400">${critChance}%</span></div>
-                </div>
+                ${knownSpells.length === 0 ? '<div class="text-zinc-500 text-xs mt-2 px-1">You don\'t know any spells yet. Buy tomes from shops.</div>' : ''}
             </div>
-        </div>
-
-        <div class="mt-4 pt-3 border-t border-zinc-700 text-[11px] text-zinc-500 leading-tight">
-            <b>Block</b>: Chance to greatly reduce incoming damage with a shield.<br>
-            <b>Crit</b>: Chance to deal 65% extra damage on attacks.
-        </div>
-    `;
-
-    charModal.style.display = 'flex';
+        `;
+    }
 }
 
 // ==================== SPELL SLOT HELPERS ====================
