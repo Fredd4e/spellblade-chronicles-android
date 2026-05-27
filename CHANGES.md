@@ -2,6 +2,24 @@
 
 > All changes made locally only. No git push performed.
 
+## Combat & Exploration Polish
+- **Combat Window completely redesigned** to feel like the Dialogue modal:
+  - Much larger enemy portrait (w-36 h-36) with strong border treatment.
+  - Full-width, taller combat log for better readability.
+  - Cleaner header layout with enemy name + HP positioned beside the portrait.
+  - Buttons remain accessible at the bottom.
+- **Dialogue Window**: Increased NPC portrait size (now w-32 h-32) and brought it closer to the modal edges for stronger presence.
+- **Button Cleanup**:
+  - Removed all "Return to Village/Square" buttons from Woods, Ruins, and Church (travel now exclusively via Map for major locations).
+  - Removed "Search for Loot" from Whispering Woods.
+  - Removed "Search Ancient Stones" from Ruined Temple.
+  - Unified hostile area actions under a single **"Explore"** button in both Woods and Ruins.
+- **New Exploration System**:
+  - "Explore" now has higher combat encounter rate.
+  - Added flavorful non-combat discoveries with rich lore text (e.g. locket with faded portrait, stained-glass shard, painting of a black horse before a burning temple, sealed letter to Elara, etc.).
+  - Discoveries can also reward gold.
+  - More atmospheric and interesting than simple loot rolls.
+
 ## Major UI Aesthetic Overhaul (Fantasy Flavor Update)
 - Complete visual redesign for dark fantasy atmosphere:
   - New deep vignette background and warmer stone/aged-wood color palette.

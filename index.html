@@ -274,25 +274,33 @@
 
     <!-- Combat -->
     <div id="combat" class="hidden fantasy-panel border-red-900/60 rounded-2xl p-4 mb-4">
-        <div class="flex gap-4">
-            <div class="w-1/2 flex-shrink-0">
-                <img id="enemy-img" class="w-full aspect-square object-cover rounded-xl border border-red-800/60" alt="Enemy">
+        <!-- Enemy Header (similar to dialogue style) -->
+        <div class="flex gap-4 mb-3">
+            <div class="flex-shrink-0">
+                <img id="enemy-img" class="w-36 h-36 object-cover rounded-2xl border-2 border-red-800/70" alt="Enemy">
             </div>
-            <div class="flex-1 min-w-0">
-                <div class="mb-2">
-                    <div id="enemy-name" class="font-bold text-red-400 text-lg"></div>
-                    <div class="text-xs text-zinc-400">Enemy</div>
-                </div>
-                <div class="mb-3">
-                    <div class="flex justify-between text-sm mb-1">
-                        <span>HP</span> <span id="enemy-hp"></span> / <span id="enemy-max"></span>
+            <div class="flex-1 min-w-0 pt-1">
+                <div id="enemy-name" class="font-bold text-red-400 text-xl"></div>
+                <div class="text-xs text-red-400/70 mb-2">Hostile Entity</div>
+                
+                <div class="mb-1">
+                    <div class="flex justify-between text-sm mb-1 text-red-200">
+                        <span>HP</span> 
+                        <span><span id="enemy-hp"></span> / <span id="enemy-max"></span></span>
                     </div>
-                    <div class="h-2 fantasy-stat-bar rounded"><div id="enemy-hp-bar" class="h-2 enemy-hp-bar rounded" style="width:100%"></div></div>
+                    <div class="h-2.5 fantasy-stat-bar rounded"><div id="enemy-hp-bar" class="h-2.5 enemy-hp-bar rounded" style="width:100%"></div></div>
                 </div>
-                <div id="combat-log" class="text-xs bg-[#11100e] border border-red-900/30 p-2 rounded h-20 overflow-auto mb-3 text-[#c8b99a]"></div>
-                <div id="combat-buttons" class="grid grid-cols-2 gap-2"></div>
             </div>
         </div>
+
+        <!-- Full-width Combat Log -->
+        <div class="mb-2">
+            <div class="text-xs text-red-400/70 mb-1 px-1">Combat Log</div>
+            <div id="combat-log" class="text-sm bg-[#11100e] border border-red-900/40 p-3 rounded-xl h-28 overflow-auto text-[#d4c9a8] leading-relaxed"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div id="combat-buttons" class="grid grid-cols-2 gap-2"></div>
     </div>
 
     <!-- Bottom Buttons -->
@@ -351,11 +359,11 @@
     <div onclick="event.stopImmediatePropagation()" class="fantasy-modal rounded-3xl w-full max-w-[620px] overflow-hidden">
         
         <!-- NPC Header with Portrait -->
-        <div class="flex gap-4 p-5 fantasy-modal-header border-b border-amber-900/30">
+        <div class="flex gap-4 p-4 fantasy-modal-header border-b border-amber-900/30">
             <div class="flex-shrink-0">
-                <img id="dialogue-npc-portrait" class="npc-portrait w-24 h-24 object-cover rounded-2xl border-2 border-amber-600/60" alt="NPC Portrait">
+                <img id="dialogue-npc-portrait" class="npc-portrait w-32 h-32 object-cover rounded-2xl border-2 border-amber-600/60" alt="NPC Portrait">
             </div>
-            <div class="flex-1 min-w-0 pt-1">
+            <div class="flex-1 min-w-0 pt-0.5">
                 <div id="dialogue-npc-name" class="font-bold text-2xl text-amber-300"></div>
                 <div id="dialogue-npc-age" class="text-sm text-zinc-400"></div>
                 <div id="dialogue-npc-marital" class="text-xs text-zinc-400 mt-0.5"></div>

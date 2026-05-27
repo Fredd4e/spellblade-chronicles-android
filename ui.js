@@ -172,16 +172,13 @@ function renderActions() {
     }
     else if (loc === 'woods') {
         actions = [
-            { label: 'Hunt Corrupted Beasts', icon: 'fa-dragon', fn: exploreWoods },
-            { label: 'Seek the Warden', icon: 'fa-user-secret', fn: () => startDialogue('thorne') },
-            { label: 'Search for Loot', icon: 'fa-search', fn: searchLoot },
-            { label: 'Return to Village', icon: 'fa-home', fn: () => travel('village') }
+            { label: 'Explore', icon: 'fa-dragon', fn: exploreWoods },
+            { label: 'Seek the Warden', icon: 'fa-user-secret', fn: () => startDialogue('thorne') }
         ];
     }
     else if (loc === 'ruins') {
         actions = [
-            { label: 'Explore Temple Depths', icon: 'fa-dungeon', fn: exploreRuins },
-            { label: 'Search Ancient Stones', icon: 'fa-search', fn: searchLoot },
+            { label: 'Explore', icon: 'fa-dungeon', fn: exploreRuins },
             { label: 'Commune with the Bound', icon: 'fa-ghost', fn: () => startDialogue('aelric') }
         ];
 
@@ -189,15 +186,12 @@ function renderActions() {
         if (lvl < 3) {
             actions.push({ label: `Descend to Level ${lvl + 1}`, icon: 'fa-arrow-down', fn: descendTemple });
         }
-
-        actions.push({ label: 'Return to Village', icon: 'fa-home', fn: () => travel('village') });
     }
     else if (loc === 'church') {
         actions = [
             { label: 'Speak with Sister Elara', icon: 'fa-pray', fn: () => startDialogue('nun') },
             { label: 'Speak with Mother Seraphine', icon: 'fa-pray', fn: () => startDialogue('mother') },
-            { label: 'Pray for Strength', icon: 'fa-hands-praying', fn: prayAtChurch },
-            { label: 'Return to the Square', icon: 'fa-home', fn: () => travel('village') }
+            { label: 'Pray for Strength', icon: 'fa-hands-praying', fn: prayAtChurch }
         ];
     }
 
