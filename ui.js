@@ -584,6 +584,34 @@ function buyItem(item, button) {
             log('You already know this spell.', true);
         }
     } else if (item.type === 'weapon' || item.type === 'armor' || item.type === 'shield') {
+        // Put currently equipped item back into inventory (if any)
+        if (item.type === 'weapon' && state.player.weapon) {
+            addToInventory({ 
+                name: state.player.weapon.name, 
+                type: 'weapon', 
+                bonus: state.player.weapon.bonus, 
+                desc: `+${state.player.weapon.bonus} Damage`, 
+                image: state.player.weapon.image 
+            });
+        } else if (item.type === 'armor' && state.player.armor) {
+            addToInventory({ 
+                name: state.player.armor.name, 
+                type: 'armor', 
+                bonus: state.player.armor.bonus, 
+                desc: `+${state.player.armor.bonus} DEF`, 
+                image: state.player.armor.image 
+            });
+        } else if (item.type === 'shield' && state.player.shield) {
+            addToInventory({ 
+                name: state.player.shield.name, 
+                type: 'shield', 
+                blockChance: state.player.shield.blockChance, 
+                desc: `+${state.player.shield.blockChance || 15}% Block Chance`, 
+                image: state.player.shield.image 
+            });
+        }
+
+        // Equip the new item
         if (item.type === 'weapon') {
             state.player.weapon = { name: item.name, bonus: item.bonus, image: item.image };
         } else if (item.type === 'armor') {
@@ -702,8 +730,22 @@ function showCharacterModal() {
                     </div>
                 </div>
 
-                <div class="text-xs text-zinc-400 mt-3">SPELLS</div>
-                <div class="text-sm">${(p.spells || []).join(', ') || 'Firebolt'}</div>
+                <div class="text-xs text-amber-400 mt-4 mb-1 font-semibold">ACTIVE SPELL SLOTS (Combat)</div>
+                <div class="flex gap-2 mb-3">
+                    ${[0,1].map(i => {
+                        const spell = (p.spellSlots && p.spellSlots[i]) || null;
+                        return `<button onclick="assignSpellToSlot(${i})" class="flex-1 px-3 py-1 text-xs rounded border ${spell ? 'bg-[#2a2119] border-amber-700 text-amber-200' : 'bg-zinc-800 border-zinc-600 text-zinc-400'}">
+                            ${spell || 'Empty Slot'}
+                        </button>`;
+                    }).join('')}
+                </div>
+
+                <div class="text-xs text-amber-400 mb-1 font-semibold">SPELLBOOK (Known Spells)</div>
+                <div class="text-xs flex flex-wrap gap-1">
+                    ${(p.spells || []).map(sp => 
+                        `<span onclick="quickAssignSpell('${sp}')" class="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded cursor-pointer text-[10px]">${sp}</span>`
+                    ).join('') || '<span class="text-zinc-500">No spells known</span>'}
+                </div>
             </div>
 
             <!-- Right: Stats with explanations -->
@@ -757,6 +799,57 @@ function showCharacterModal() {
 
     charModal.style.display = 'flex';
 }
+
+// ==================== SPELL SLOT HELPERS ====================
+window.assignSpellToSlot = function(slotIndex) {
+    const p = state.player;
+    if (!p.spellSlots) p.spellSlots = [null, null];
+
+    // Toggle off if already equipped in this slot
+    if (p.spellSlots[slotIndex]) {
+        p.spellSlots[slotIndex] = null;
+        showCharacterModal();
+        save();
+        return;
+    }
+
+    const known = p.spells || [];
+    if (known.length === 0) {
+        showToast("You don't know any spells yet.");
+        return;
+    }
+
+    const choice = prompt("Type spell name for slot " + (slotIndex + 1) + ":\nAvailable: " + known.join(", "));
+    if (!choice) return;
+
+    const spell = known.find(s => s.toLowerCase() === choice.toLowerCase());
+    if (!spell) {
+        showToast("Spell not found.");
+        return;
+    }
+
+    p.spellSlots = p.spellSlots.map(s => s === spell ? null : s);
+    p.spellSlots[slotIndex] = spell;
+
+    showCharacterModal();
+    save();
+    showToast(`Assigned <b>${spell}</b> to slot ${slotIndex + 1}`);
+};
+
+window.quickAssignSpell = function(spellName) {
+    const p = state.player;
+    if (!p.spellSlots) p.spellSlots = [null, null];
+
+    let target = p.spellSlots.findIndex(s => !s);
+    if (target === -1) target = 0;
+
+    p.spellSlots = p.spellSlots.map(s => s === spellName ? null : s);
+    p.spellSlots[target] = spellName;
+
+    showCharacterModal();
+    save();
+    showToast(`Assigned <b>${spellName}</b> to slot ${target + 1}`);
+};
 
 // ==================== MAP FUNCTIONS (FIXED) ====================
 

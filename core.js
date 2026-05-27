@@ -17,7 +17,9 @@ let state = {
         weapon: { name: "Rusty Sword", bonus: 3, image: "assets/items/rusty-sword.jpg" },
         armor: { name: "Cloth Tunic", bonus: 1, image: "assets/items/cloth-tunic.jpg" },
         shield: null,              // New equipment slot: { name, blockChance, image }
-        spells: ["Firebolt"]
+        spells: ["Firebolt"],
+        spellSlots: [null, null],     // Two active spell slots for combat
+        spellCooldowns: {}            // { "Heal": 1, ... } remaining rounds
     },
     inventory: [
         { id: 1, name: "Health Potion", type: "consumable", bonus: 30, desc: "Restores 30 HP", quantity: 2 }

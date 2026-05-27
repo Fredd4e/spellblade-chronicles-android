@@ -2,6 +2,17 @@
 
 > All changes made locally only. No git push performed.
 
+## Spell Cooldown System Overhaul
+- Added proper **World of Warcraft-style pie/clock cooldown overlays** on spell buttons in combat.
+  - Dark sweeping conic-gradient overlay that shrinks as cooldown ticks down.
+  - Large remaining cooldown number displayed in the center of the button.
+- All spells now have a **minimum 2-round cooldown**:
+  - Firebolt, Ice Shard, Divine Light: 2 rounds
+  - Heal: 3 rounds
+- Cooldowns now **fully reset** when combat ends (win or lose).
+- Cooldown visuals update live every turn.
+- Improved spell button rendering to support the new overlay system cleanly.
+
 ## Combat & Exploration Polish
 - **Combat Window completely redesigned** to feel like the Dialogue modal:
   - Much larger enemy portrait (w-36 h-36) with strong border treatment.

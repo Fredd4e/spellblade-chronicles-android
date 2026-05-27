@@ -2,10 +2,10 @@
 
 // Spell definitions
 const SPELLS = {
-    "Firebolt": { cost: 5, baseDmg: 8, scale: 1.5, type: "damage" },
-    "Ice Shard": { cost: 8, baseDmg: 12, scale: 1.8, type: "damage" },
-    "Heal": { cost: 10, baseDmg: 15, scale: 2.5, type: "heal" },
-    "Divine Light": { cost: 9, baseDmg: 14, scale: 1.6, type: "damage", isHoly: true }
+    "Firebolt":     { cost: 12, baseDmg: 22, scale: 1.6, type: "damage" },
+    "Ice Shard":    { cost: 18, baseDmg: 32, scale: 1.7, type: "damage" },
+    "Heal":         { cost: 22, baseDmg: 45, scale: 2.2, type: "heal" },
+    "Divine Light": { cost: 16, baseDmg: 28, scale: 1.6, type: "damage", isHoly: true }
 };
 
 // ==================== STAT HELPERS ====================
@@ -87,10 +87,20 @@ function startCombat(key = 'beast') {
     if (state.enemy.isBoss) startMsg = `The <b>${state.enemy.name}</b> rises to challenge you!`;
 
     const clog = $('combat-log');
-    if (clog) clog.innerHTML = `<div>${startMsg}</div>`;
+    if (clog) {
+        clog.innerHTML = `<div>${startMsg}</div>`;
+        clog.scrollTop = clog.scrollHeight;
+    }
 
     renderCombatButtons();
     $('actions').innerHTML = '';
+
+    // Move combat panel to the top of the screen for focus
+    const combatEl = $('combat');
+    const container = document.querySelector('.game-container');
+    if (combatEl && container && combatEl.parentNode !== container) {
+        container.insertBefore(combatEl, container.firstChild);
+    }
 }
 
 function renderCombatButtons() {
@@ -117,18 +127,51 @@ function renderCombatButtons() {
     // Primary attack
     addCombatBtn('⚔️ Sword Attack', () => playerAttack('sword'), 'sword');
     
-    // Spells (color-coded)
-    addCombatBtn('🔥 Firebolt', () => castSpell('Firebolt'), 'fire');
-    
-    if (state.player.spells && state.player.spells.includes('Ice Shard')) {
-        addCombatBtn('❄️ Ice Shard', () => castSpell('Ice Shard'), 'ice');
-    }
-    if (state.player.spells && state.player.spells.includes('Divine Light')) {
-        addCombatBtn('✨ Divine Light', () => castSpell('Divine Light'), 'divine');
-    }
-    if (state.player.spells && state.player.spells.includes('Heal')) {
-        addCombatBtn('💚 Heal', () => castSpell('Heal'), 'heal');
-    }
+    // Only show spells that are equipped in the two spell slots
+    const slots = (state.player.spellSlots || [null, null]).filter(s => s);
+    const known = state.player.spells || [];
+
+    slots.forEach(spellName => {
+        if (!known.includes(spellName)) return;
+
+        let variant = 'combat';
+        let icon = '';
+        if (spellName === 'Firebolt') { variant = 'fire'; icon = '🔥 '; }
+        else if (spellName === 'Ice Shard') { variant = 'ice'; icon = '❄️ '; }
+        else if (spellName === 'Heal') { variant = 'heal'; icon = '💚 '; }
+        else if (spellName === 'Divine Light') { variant = 'divine'; icon = '✨ '; }
+
+        const cd = (state.player.spellCooldowns && state.player.spellCooldowns[spellName]) || 0;
+        const maxCd = (spellName === 'Heal') ? 3 : 2;
+        const progress = cd > 0 ? (cd / maxCd) : 0;
+        const angle = Math.floor(progress * 360);
+
+        const btn = document.createElement('button');
+        let cls = `fantasy-btn spell-btn py-2.5 px-3 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5`;
+        if (variant === 'fire') cls += ' btn-spell-fire';
+        else if (variant === 'ice') cls += ' btn-spell-ice';
+        else if (variant === 'heal') cls += ' btn-spell-heal';
+        else if (variant === 'divine') cls += ' btn-spell-divine';
+
+        btn.className = cls;
+        btn.innerHTML = `
+            <span class="relative z-10">${icon}${spellName}</span>
+            ${cd > 0 ? `
+                <div class="cooldown-overlay" style="--cd-angle: ${angle}deg;"></div>
+                <div class="cooldown-text">${cd}</div>
+            ` : ''}
+        `;
+
+        if (cd > 0) {
+            btn.disabled = true;
+        }
+
+        btn.onclick = () => {
+            if ((state.player.spellCooldowns?.[spellName] || 0) > 0) return;
+            castSpell(spellName);
+        };
+        c.appendChild(btn);
+    });
 
     // Utility actions
     addCombatBtn('🛡️ Defend', defend, 'defend');
@@ -166,7 +209,7 @@ function playerAttack(t) {
     if (isCrit) msg = `⚔️ <b>CRITICAL!</b> ` + msg;
     if (isUndead && weaponName.includes('consecrated')) msg = `Your consecrated blade burns the undead for <b>${d}</b>!`;
 
-    if ($('combat-log')) $('combat-log').innerHTML += `<div>${msg}</div>`;
+    addCombatMessage(msg);
     updateEnemyUI();
     if (state.enemy.hp <= 0) endCombat(true);
     else setTimeout(enemyAttack, 580);
@@ -176,8 +219,21 @@ function castSpell(n) {
     const sp = SPELLS[n];
     if (!sp || (state.player.mp || 0) < sp.cost) return;
 
+    // Cooldown check
+    const cds = state.player.spellCooldowns || {};
+    if (cds[n] && cds[n] > 0) {
+        addCombatMessage(`${n} is on cooldown!`);
+        return;
+    }
+
     const p = state.player;
     state.player.mp -= sp.cost;
+
+    // Apply cooldown (minimum 2 rounds for all spells)
+    if (!state.player.spellCooldowns) state.player.spellCooldowns = {};
+    let cooldownLength = 2;
+    if (n === 'Heal') cooldownLength = 3;
+    state.player.spellCooldowns[n] = cooldownLength;
 
     let val = Math.floor(sp.baseDmg + (p.int || 5) * (sp.scale || 1.5) * 0.9);
 
@@ -191,13 +247,13 @@ function castSpell(n) {
     const clog = $('combat-log');
     if (sp.type === 'heal') {
         state.player.hp = Math.min(state.player.maxHp, (state.player.hp || 0) + val);
-        if (clog) clog.innerHTML += `<div>You heal for <b>${val}</b> HP.</div>`;
+        addCombatMessage(`You heal for <b>${val}</b> HP.`);
         updateStats();
     } else {
         state.enemy.hp = Math.max(0, state.enemy.hp - val);
         let dmgText = `${n} hits for <b>${val}</b> damage!`;
         if (sp.isHoly && isUndead) dmgText = `${n} sears the undead for <b>${val}</b>!`;
-        if (clog) clog.innerHTML += `<div>${dmgText}</div>`;
+        addCombatMessage(dmgText);
         updateEnemyUI();
         if (state.enemy.hp <= 0) { endCombat(true); return; }
     }
@@ -205,13 +261,28 @@ function castSpell(n) {
 }
 
 function defend() {
-    if ($('combat-log')) $('combat-log').innerHTML += '<div>You brace for impact.</div>';
+    addCombatMessage('You brace for impact.');
     state._defending = true;
     setTimeout(enemyAttack, 380);
 }
 
 function enemyAttack() {
     if (!state.enemy) return;
+
+    // Tick down spell cooldowns at end of player turn
+    const cds = state.player.spellCooldowns || {};
+    let hadCooldown = false;
+    Object.keys(cds).forEach(spell => {
+        if (cds[spell] > 0) {
+            cds[spell]--;
+            hadCooldown = true;
+        }
+    });
+
+    // Refresh combat buttons so cooldown overlays update visually
+    if (hadCooldown && $('combat').classList.contains('hidden') === false) {
+        renderCombatButtons();
+    }
     const p = state.player;
     let d = state.enemy.dmg || 6;
 
@@ -221,6 +292,7 @@ function enemyAttack() {
     }
 
     const armorBonus = (p.armor && p.armor.bonus) || 0;
+    const totalDef = (p.def || 3) + armorBonus;
 
     // Shield block check (new system)
     const blockChance = getPlayerBlockChance();
@@ -230,17 +302,16 @@ function enemyAttack() {
         d = Math.floor(d * 0.25); // heavily reduced damage on block
     }
 
-    const real = Math.max(1, d - ((p.def || 3) + armorBonus));
+    // Percentage-based defense (smooth scaling, caps at ~70%)
+    const reduction = Math.min(0.70, totalDef / (totalDef + 45));
+    const real = Math.max(1, Math.floor(d * (1 - reduction)));
 
     state.player.hp = Math.max(0, (state.player.hp || 0) - real);
 
-    const clog = $('combat-log');
-    if (clog) {
-        let msg = `Enemy hits for <b>${real}</b>.`;
-        if (blocked) msg = `🛡️ You block with your ${p.shield.name}! Enemy hits for <b>${real}</b>.`;
-        if (armorBonus && !blocked) msg += ` <span class="text-emerald-400">(armor)</span>`;
-        clog.innerHTML += `<div>${msg}</div>`;
-    }
+    let msg = `Enemy hits for <b>${real}</b>.`;
+    if (blocked) msg = `🛡️ You block with your ${p.shield.name}! Enemy hits for <b>${real}</b>.`;
+    if (armorBonus && !blocked) msg += ` <span class="text-emerald-400">(armor)</span>`;
+    addCombatMessage(msg);
 
     updateStats();
     updateEnemyUI();
@@ -249,7 +320,23 @@ function enemyAttack() {
 
 function updateEnemyUI(){ if(!state.enemy) return; if($('enemy-hp')) $('enemy-hp').textContent=state.enemy.hp; if($('enemy-hp-bar')) $('enemy-hp-bar').style.width = (state.enemy.hp/state.enemy.maxHp*100)+'%'; }
 
-function fleeCombat(){ if(Math.random()<0.55){ if($('combat-log')) $('combat-log').innerHTML+='<div>Fled successfully.</div>'; setTimeout(()=>endCombat(false),300);} else { if($('combat-log')) $('combat-log').innerHTML+='<div>Flee failed!</div>'; setTimeout(enemyAttack,300); } }
+function addCombatMessage(msg) {
+    const clog = $('combat-log');
+    if (!clog) return;
+    clog.innerHTML += `<div>${msg}</div>`;
+    // Auto-scroll to bottom
+    clog.scrollTop = clog.scrollHeight;
+}
+
+function fleeCombat(){ 
+    if(Math.random()<0.55){ 
+        addCombatMessage('Fled successfully.'); 
+        setTimeout(()=>endCombat(false),300);
+    } else { 
+        addCombatMessage('Flee failed!'); 
+        setTimeout(enemyAttack,300); 
+    } 
+}
 
 function endCombat(win) {
     state.inCombat = false;
@@ -304,6 +391,12 @@ function endCombat(win) {
     }
 
     state.enemy = null;
+
+    // Reset all spell cooldowns when combat ends
+    if (state.player.spellCooldowns) {
+        state.player.spellCooldowns = {};
+    }
+
     updateAll();
     renderActions();
     save();
@@ -328,15 +421,6 @@ function checkLevelUp() {
             showToast(`<b>LEVEL UP!</b> You are now Level ${p.level}`, 'success', 2800);
         }
 
-        if (p.level === 3 && !p.spells.includes('Ice Shard')) {
-            p.spells.push('Ice Shard');
-            log('Ice Shard learned!', true);
-            if (typeof showToast === 'function') showToast('New spell: <b>Ice Shard</b>', 'success');
-        }
-        if (p.level === 5 && !p.spells.includes('Heal')) {
-            p.spells.push('Heal');
-            log('Heal learned!', true);
-            if (typeof showToast === 'function') showToast('New spell: <b>Heal</b>', 'success');
-        }
+        // Spells are now only learned by purchasing tomes from shops (no more level-up spells)
     }
 }

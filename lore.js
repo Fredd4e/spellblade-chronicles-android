@@ -209,8 +209,8 @@ const Lore = {
 
     shopItems: [
         {name:"Iron Sword",type:"weapon",bonus:7,price:55,effect:"+7 Damage", image:"assets/items/iron-sword.jpg"},
-        {name:"Leather Armor",type:"armor",bonus:4,price:45,effect:"+4 Defense", image:"assets/items/leather-armor.jpg"},
-        {name:"Mail Armor",type:"armor",bonus:10,price:150,effect:"+10 DEF, +20 Max HP, +20 Max MP", isSpecial: true, healthBonus:20, manaBonus:20, image:"assets/items/mail-armor.jpg"},
+        {name:"Leather Armor",type:"armor",bonus:5,price:45,effect:"+5 Defense Rating", image:"assets/items/leather-armor.jpg"},
+        {name:"Mail Armor",type:"armor",bonus:12,price:150,effect:"+12 Defense Rating, +20 Max HP, +20 Max MP", isSpecial: true, healthBonus:20, manaBonus:20, image:"assets/items/mail-armor.jpg"},
         {name:"Health Potion",type:"consumable",bonus:30,price:12,effect:"Restores 30 HP", image:"assets/items/health-potion.jpg"},
         {name:"Mana Potion",type:"consumable",bonus:15,price:15,effect:"Restores 15 MP", image:"assets/items/mana-potion.jpg"},
         {name:"Spell Tome: Ice Shard",type:"spell",price:95,effect:"Learn Ice Shard spell", image:"assets/items/spell-tome-ice-shard.jpg"},
@@ -221,9 +221,9 @@ const Lore = {
     // Holy-themed items sold only by Sister Elara at the Church
     nunShopItems: [
         {name:"Holy Water", type:"consumable", bonus:25, price:18, effect:"Restores 25 HP + 10 MP. Stronger vs the undead.", image:"assets/items/holy-water.jpg"},
-        {name:"Silver Pendant", type:"armor", bonus:3, price:75, effect:"+3 DEF, +4 vs undead", isHoly: true, undeadBonus:4, image:"assets/items/silver-pendant.jpg"},
+        {name:"Silver Pendant", type:"armor", bonus:3, price:75, effect:"+4 Defense Rating, +4 vs undead", isHoly: true, undeadBonus:4, image:"assets/items/silver-pendant.jpg"},
         {name:"Consecrated Blade", type:"weapon", bonus:9, price:120, effect:"+9 Damage. Holy light guides your strikes.", isHoly: true, image:"assets/items/consecrated-blade.jpg"},
-        {name:"Prayer Shawl", type:"armor", bonus:6, price:95, effect:"+6 DEF, +12 Max MP", isSpecial: true, manaBonus:12, image:"assets/items/prayer-shawl.jpg"},
+        {name:"Prayer Shawl", type:"armor", bonus:6, price:95, effect:"+8 Defense Rating, +12 Max MP", isSpecial: true, manaBonus:12, image:"assets/items/prayer-shawl.jpg"},
         {name:"Tome of Radiance", type:"spell", price:135, effect:"Learn Divine Light — a holy spell that burns the corrupt.", image:"assets/items/tome-of-radiance.jpg"},
         {name:"Aegis of Light", type:"shield", blockChance:28, price:160, effect:"+28% Block Chance. Holy shield that protects the faithful.", image:"assets/items/aegis-of-light.jpg"}
     ],
