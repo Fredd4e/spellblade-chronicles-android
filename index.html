@@ -15,6 +15,182 @@
         .item-row:hover { background-color: #27251f; }
         .rpg-btn { transition: transform 0.1s ease, box-shadow 0.1s ease; }
         .rpg-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+
+        /* ============================================
+           FANTASY BUTTON SYSTEM - Themed for Spellblade Chronicles
+           ============================================ */
+        .fantasy-btn {
+            transition: all 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border: 1px solid rgba(180, 150, 90, 0.28);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+            font-weight: 600;
+            letter-spacing: 0.015em;
+        }
+        .fantasy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.4), 0 0 0 1px rgba(212, 175, 119, 0.18);
+            border-color: rgba(212, 175, 119, 0.45);
+        }
+        .fantasy-btn:active {
+            transform: translateY(1px) scale(0.985);
+            transition-duration: 60ms;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Exploration / General Actions */
+        .btn-action {
+            background: linear-gradient(145deg, #27251f, #1f1d19);
+            color: #e4d9b8;
+        }
+        .btn-action:hover {
+            background: linear-gradient(145deg, #302c24, #25221c);
+            border-color: rgba(52, 211, 153, 0.4);
+        }
+
+        /* Holy / Church / Divine actions */
+        .btn-holy {
+            background: linear-gradient(145deg, #2c2620, #211d18);
+            color: #f0d9a0;
+            border-color: rgba(212, 175, 119, 0.38);
+        }
+        .btn-holy:hover {
+            background: linear-gradient(145deg, #3a3228, #29251f);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(212, 175, 119, 0.35);
+            border-color: #c9a25f;
+        }
+
+        /* Combat / Aggressive */
+        .btn-combat {
+            background: #1f1918;
+            color: #e8b4b4;
+            border-color: rgba(185, 70, 60, 0.35);
+        }
+        .btn-combat:hover {
+            background: #2a2220;
+            border-color: rgba(239, 68, 68, 0.55);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.45), 0 0 0 1px rgba(239, 68, 68, 0.25);
+        }
+
+        /* Dialogue options - more elegant */
+        .btn-dialogue {
+            background: #25221e;
+            color: #d4c9a8;
+            border-color: rgba(180, 150, 90, 0.25);
+            font-size: 0.875rem;
+        }
+        .btn-dialogue:hover {
+            background: #2f2a24;
+            border-color: rgba(212, 175, 119, 0.5);
+        }
+
+        /* Shop / Buy actions */
+        .btn-shop {
+            background: linear-gradient(145deg, #1f251f, #1a211a);
+            color: #a3d9a3;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+        .btn-shop:hover {
+            background: linear-gradient(145deg, #252c24, #1f261f);
+            border-color: rgba(52, 211, 153, 0.55);
+        }
+
+        /* Spell-specific combat buttons */
+        .btn-spell-fire   { background: #2a2119; color: #f4b36e; border-color: rgba(245, 158, 11, 0.35); }
+        .btn-spell-ice    { background: #1c2428; color: #7dd3fc; border-color: rgba(103, 232, 249, 0.35); }
+        .btn-spell-heal   { background: #1f241f; color: #86efac; border-color: rgba(74, 222, 128, 0.35); }
+        .btn-spell-divine { background: #27221c; color: #f0d9a0; border-color: rgba(212, 175, 119, 0.4); }
+
+        .fantasy-btn:disabled,
+        .fantasy-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ============================================
+           FANTASY UI - Overall Atmosphere & Panels
+           ============================================ */
+
+        /* Global Background - Deep dark fantasy with subtle vignette */
+        body {
+            background: #0f0d0b;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(40, 30, 20, 0.35) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(30, 20, 15, 0.4) 0%, transparent 60%);
+        }
+
+        .game-container {
+            background: #14120f;
+            border: 1px solid rgba(120, 90, 50, 0.15);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 25px 50px -12px rgb(0 0 0 / 0.5);
+        }
+
+        /* Fantasy Panel Base - Stone / Dark Wood feel */
+        .fantasy-panel {
+            background: linear-gradient(145deg, #1c1916 0%, #161410 100%);
+            border: 1px solid rgba(140, 105, 65, 0.22);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+
+        .fantasy-panel-header {
+            background: linear-gradient(to right, #211d18, #1a1714);
+            border-bottom: 1px solid rgba(180, 140, 80, 0.18);
+        }
+
+        /* Story Log - Parchment-like */
+        .story-log {
+            background: #181510;
+            border: 1px solid rgba(130, 95, 55, 0.2);
+        }
+
+        /* Ornate dividers and accents */
+        .fantasy-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(180,140,80,0.25), transparent);
+        }
+
+        /* Improved stat bars with fantasy framing */
+        .fantasy-stat-bar {
+            background: #0f0d0b;
+            border: 1px solid rgba(100, 75, 45, 0.35);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Modal Chrome - Richer fantasy treatment */
+        .fantasy-modal {
+            background: #1a1713;
+            border: 2px solid rgba(140, 105, 65, 0.35);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.6), 0 0 0 1px rgba(0,0,0,0.5);
+        }
+
+        .fantasy-modal-header {
+            background: linear-gradient(to bottom, #211d18, #1a1713);
+            border-bottom: 1px solid rgba(180, 140, 80, 0.25);
+        }
+
+        /* Dialogue modal special treatment (most important) */
+        #dialogue-modal .fantasy-modal {
+            border-color: rgba(180, 140, 80, 0.45);
+        }
+
+        /* Location header */
+        .location-header {
+            color: #d4c39a;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Subtle gold accents on text */
+        .fantasy-text {
+            color: #d4c9a8;
+        }
+
+        /* Progress bar fantasy styling */
+        .hp-bar { background: linear-gradient(to right, #4ade80, #22c55e); }
+        .mp-bar { background: linear-gradient(to right, #60a5fa, #3b82f6); }
+        .enemy-hp-bar { background: linear-gradient(to right, #f87171, #ef4444); }
         
         /* Area portrait styling */
         #area-portrait { transition: all 0.3s ease; }
@@ -27,7 +203,7 @@
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
-<div class="game-container min-h-screen p-4 max-w-[680px] mx-auto">
+<div class="game-container min-h-screen p-4 max-w-[680px] mx-auto rounded-3xl">
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-4">
@@ -39,21 +215,21 @@
     </div>
 
     <!-- Stats -->
-    <div class="bg-zinc-900 rounded-2xl p-4 mb-4">
+    <div class="fantasy-panel rounded-2xl p-4 mb-4">
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <div class="flex justify-between text-sm">
                     <span><i class="fas fa-heart text-red-500"></i> HP</span>
                     <span id="hp">50/50</span>
                 </div>
-                <div class="h-2 bg-zinc-800 rounded"><div id="hp-bar" class="h-2 bg-green-500 rounded" style="width:100%"></div></div>
+                <div class="h-2 fantasy-stat-bar rounded"><div id="hp-bar" class="h-2 hp-bar rounded" style="width:100%"></div></div>
             </div>
             <div>
                 <div class="flex justify-between text-sm">
                     <span><i class="fas fa-magic text-blue-400"></i> MP</span>
                     <span id="mp">20/20</span>
                 </div>
-                <div class="h-2 bg-zinc-800 rounded"><div id="mp-bar" class="h-2 bg-blue-500 rounded" style="width:100%"></div></div>
+                <div class="h-2 fantasy-stat-bar rounded"><div id="mp-bar" class="h-2 mp-bar rounded" style="width:100%"></div></div>
             </div>
         </div>
         <div class="flex justify-between mt-2 text-sm">
@@ -64,29 +240,32 @@
     </div>
 
     <!-- Story Log -->
-    <div class="bg-zinc-900 rounded-2xl mb-4 overflow-hidden">
-        <div onclick="toggleStory()" class="px-4 py-2 flex justify-between cursor-pointer bg-zinc-950">
-            <span class="font-semibold"><i class="fas fa-book text-amber-400"></i> Story Log</span>
+    <div class="fantasy-panel rounded-2xl mb-4 overflow-hidden story-log">
+        <div onclick="toggleStory()" class="px-4 py-2 flex justify-between cursor-pointer fantasy-panel-header">
+            <span class="font-semibold fantasy-text"><i class="fas fa-book text-amber-400"></i> Story Log</span>
             <i id="story-icon" class="fas fa-chevron-up"></i>
         </div>
-        <div id="story-box" class="p-4 max-h-[200px] overflow-auto text-sm"><div id="story"></div></div>
+        <div id="story-box" class="p-4 max-h-[200px] overflow-auto text-sm text-[#c8b99a]"><div id="story"></div></div>
     </div>
 
     <!-- Location + Controls -->
-    <div class="flex justify-between mb-2 px-1">
-        <div class="font-bold"><i class="fas fa-map-marker-alt text-emerald-400"></i> <span id="location">Eldoria Village Square</span></div>
+    <div class="flex justify-between mb-2 px-1 pb-1 border-b border-amber-900/15">
+        <div class="font-semibold location-header flex items-center gap-2">
+            <i class="fas fa-map-marker-alt text-amber-400"></i> 
+            <span id="location">Eldoria Village Square</span>
+        </div>
         <div class="flex gap-2">
-            <button onclick="exportLogs()" class="text-xs px-3 py-1 bg-zinc-800 rounded-full">Logs</button>
-            <button onclick="showQuestJournal()" class="text-xs px-3 py-1 bg-zinc-800 rounded-full">Quests</button>
-            <button onclick="showMap()" class="px-3 py-1 bg-zinc-800 rounded-full text-sm"><i class="fas fa-map"></i> Map</button>
+            <button onclick="exportLogs()" class="text-xs px-3 py-1 fantasy-btn btn-action rounded-full text-[10px]">Logs</button>
+            <button onclick="showQuestJournal()" class="text-xs px-3 py-1 fantasy-btn btn-action rounded-full text-[10px]">Quests</button>
+            <button onclick="showMap()" class="px-3 py-1 fantasy-btn btn-action rounded-full text-sm flex items-center gap-1"><i class="fas fa-map"></i> <span>Map</span></button>
         </div>
     </div>
 
     <!-- Area Portrait -->
     <div id="area-portrait" class="hidden mb-4">
-        <div class="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700 shadow-inner">
+        <div class="fantasy-panel rounded-2xl overflow-hidden border border-amber-900/20">
             <img id="area-portrait-img" class="w-full object-cover" alt="Current area" style="display:none; max-height: 220px;">
-            <div class="p-3.5 text-sm bg-zinc-950/70" id="area-portrait-caption"></div>
+            <div class="p-3.5 text-sm bg-black/40 text-[#c8b99a]" id="area-portrait-caption"></div>
         </div>
     </div>
 
@@ -94,7 +273,7 @@
     <div id="actions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
     <!-- Combat -->
-    <div id="combat" class="hidden bg-zinc-900 border border-red-900 rounded-2xl p-4 mb-4">
+    <div id="combat" class="hidden fantasy-panel border-red-900/60 rounded-2xl p-4 mb-4">
         <div class="flex gap-4">
             <div class="w-1/2 flex-shrink-0">
                 <img id="enemy-img" class="w-full aspect-square object-cover rounded-xl border border-red-800/60" alt="Enemy">
@@ -108,47 +287,47 @@
                     <div class="flex justify-between text-sm mb-1">
                         <span>HP</span> <span id="enemy-hp"></span> / <span id="enemy-max"></span>
                     </div>
-                    <div class="h-2 bg-zinc-800 rounded"><div id="enemy-hp-bar" class="h-2 bg-red-500 rounded" style="width:100%"></div></div>
+                    <div class="h-2 fantasy-stat-bar rounded"><div id="enemy-hp-bar" class="h-2 enemy-hp-bar rounded" style="width:100%"></div></div>
                 </div>
-                <div id="combat-log" class="text-xs bg-zinc-950 p-2 rounded h-20 overflow-auto mb-3"></div>
+                <div id="combat-log" class="text-xs bg-[#11100e] border border-red-900/30 p-2 rounded h-20 overflow-auto mb-3 text-[#c8b99a]"></div>
                 <div id="combat-buttons" class="grid grid-cols-2 gap-2"></div>
             </div>
         </div>
     </div>
 
     <!-- Bottom Buttons -->
-    <div class="flex gap-3">
-        <button onclick="showInventory()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm font-medium">Inventory</button>
-        <button onclick="showStats()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm font-medium">Character</button>
-        <button onclick="save()" class="flex-1 py-3 bg-amber-700 hover:bg-amber-600 rounded-2xl text-sm font-medium">Save</button>
+    <div class="flex gap-3 pt-1">
+        <button onclick="showInventory()" class="flex-1 py-3 fantasy-btn btn-action rounded-2xl text-sm font-semibold">Inventory</button>
+        <button onclick="showStats()" class="flex-1 py-3 fantasy-btn btn-action rounded-2xl text-sm font-semibold">Character</button>
+        <button onclick="save()" class="flex-1 py-3 fantasy-btn btn-holy rounded-2xl text-sm font-semibold">Save</button>
     </div>
 </div>
 
 <!-- Intro Modal -->
-<div id="intro-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-6 hidden">
-    <div class="bg-zinc-900 rounded-3xl max-w-md w-full p-7 border border-zinc-700">
+<div id="intro-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-6 hidden">
+    <div class="fantasy-modal rounded-3xl max-w-md w-full p-7">
         <h2 class="fantasy-title text-2xl text-amber-400 mb-4 text-center" id="intro-title"></h2>
         <div id="intro-text" class="space-y-3 text-sm text-zinc-300 mb-6"></div>
         <div class="flex gap-3">
-            <button onclick="startGame(true)" class="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-2xl font-bold">Begin Adventure</button>
-            <button onclick="startGame(false)" class="flex-1 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-2xl">Skip Intro</button>
+            <button onclick="startGame(true)" class="flex-1 py-3 fantasy-btn btn-holy rounded-2xl font-bold text-base">Begin Adventure</button>
+            <button onclick="startGame(false)" class="flex-1 py-3 fantasy-btn btn-action rounded-2xl text-base">Skip Intro</button>
         </div>
     </div>
 </div>
 
 <!-- Map Modal -->
-<div id="map-modal" onclick="if(event.target.id==='map-modal') hideMap()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[620px] p-5">
+<div id="map-modal" onclick="if(event.target.id==='map-modal') hideMap()" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
+    <div onclick="event.stopImmediatePropagation()" class="fantasy-modal rounded-3xl w-full max-w-[620px] p-5">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-xl">World Map</h3>
-            <div>
-                <button onclick="zoomMap(-0.2)" class="px-2 py-1 bg-zinc-800 rounded">-</button>
-                <span id="zoom-level" class="px-2 text-xs text-zinc-400">100%</span>
-                <button onclick="zoomMap(0.2)" class="px-2 py-1 bg-zinc-800 rounded">+</button>
-                <button onclick="resetMapZoom(); hideMap()" class="ml-2 px-3 py-1 bg-zinc-700 rounded text-sm">Close</button>
+            <div class="flex items-center gap-1">
+                <button onclick="zoomMap(-0.2)" class="px-2.5 py-1 fantasy-btn btn-action text-sm rounded">-</button>
+                <span id="zoom-level" class="px-2 text-xs text-amber-300/70 font-mono">100%</span>
+                <button onclick="zoomMap(0.2)" class="px-2.5 py-1 fantasy-btn btn-action text-sm rounded">+</button>
+                <button onclick="resetMapZoom(); hideMap()" class="ml-2 px-3 py-1 fantasy-btn btn-holy text-xs rounded">Close</button>
             </div>
         </div>
-        <div id="map-content" class="relative w-full h-[420px] bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-700">
+        <div id="map-content" class="relative w-full h-[420px] bg-[#0f0d0b] rounded-2xl overflow-hidden border border-amber-900/30">
             <img src="assets/map/world-map.jpg" class="w-full h-full object-cover" alt="World Map">
             <!-- Clickable locations -->
             <div onclick="travel('village'); hideMap();" class="absolute cursor-pointer" style="bottom:38%; left:28%;">
@@ -167,12 +346,12 @@
     </div>
 </div>
 
-<!-- NEW: Dialogue Modal with NPC Portrait + Options -->
-<div id="dialogue-modal" onclick="if(event.target.id==='dialogue-modal') closeDialogue()" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[110] p-4">
-    <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl w-full max-w-[620px] border border-zinc-700 shadow-2xl overflow-hidden">
+<!-- Dialogue Modal with NPC Portrait + Options -->
+<div id="dialogue-modal" onclick="if(event.target.id==='dialogue-modal') closeDialogue()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[110] p-4">
+    <div onclick="event.stopImmediatePropagation()" class="fantasy-modal rounded-3xl w-full max-w-[620px] overflow-hidden">
         
         <!-- NPC Header with Portrait -->
-        <div class="flex gap-4 p-5 bg-zinc-950/70 border-b border-zinc-700">
+        <div class="flex gap-4 p-5 fantasy-modal-header border-b border-amber-900/30">
             <div class="flex-shrink-0">
                 <img id="dialogue-npc-portrait" class="npc-portrait w-24 h-24 object-cover rounded-2xl border-2 border-amber-600/60" alt="NPC Portrait">
             </div>
@@ -183,7 +362,7 @@
                 <div id="dialogue-npc-title" class="text-xs text-zinc-500 mt-0.5"></div>
             </div>
             <div>
-                <button onclick="closeDialogue()" class="text-zinc-400 hover:text-white px-3 py-1 text-xl leading-none">&times;</button>
+                <button onclick="closeDialogue()" class="fantasy-btn btn-action text-zinc-300 hover:text-white px-3 py-0.5 text-lg leading-none rounded-lg">×</button>
             </div>
         </div>
 
@@ -199,8 +378,8 @@
             </div>
         </div>
 
-        <div class="px-5 pb-4 text-[10px] text-zinc-500 flex justify-between items-center">
-            <span>Dialogue • Story Log remains visible below</span>
+        <div class="px-5 pb-4 text-[10px] text-amber-900/70 flex justify-between items-center border-t border-amber-900/20">
+            <span>Dialogue • Your story continues in the log</span>
         </div>
     </div>
 </div>

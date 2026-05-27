@@ -95,17 +95,44 @@ function startCombat(key = 'beast') {
 
 function renderCombatButtons() {
     const c = $('combat-buttons'); if (!c) return; c.innerHTML = '';
-    const add = (txt, fn) => { const b = document.createElement('button'); b.className = 'py-2 px-3 text-xs bg-zinc-700 hover:bg-zinc-600 rounded-xl'; b.textContent = txt; b.onclick = fn; c.appendChild(b); };
+    
+    const addCombatBtn = (txt, fn, variant = 'combat') => {
+        const b = document.createElement('button');
+        let cls = 'fantasy-btn py-2.5 px-3 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5';
+        
+        if (variant === 'sword') cls += ' btn-combat';
+        else if (variant === 'fire') cls += ' btn-spell-fire';
+        else if (variant === 'ice') cls += ' btn-spell-ice';
+        else if (variant === 'heal') cls += ' btn-spell-heal';
+        else if (variant === 'divine') cls += ' btn-spell-divine';
+        else if (variant === 'defend') cls += ' btn-dialogue';
+        else if (variant === 'flee') cls += ' bg-[#2a2119] text-amber-300 border border-amber-800/50 hover:bg-[#3a2a1f]';
+        
+        b.className = cls;
+        b.innerHTML = `<span>${txt}</span>`;
+        b.onclick = fn;
+        c.appendChild(b);
+    };
 
-    add('Sword Attack', () => playerAttack('sword'));
-    add('Firebolt', () => castSpell('Firebolt'));
+    // Primary attack
+    addCombatBtn('⚔️ Sword Attack', () => playerAttack('sword'), 'sword');
+    
+    // Spells (color-coded)
+    addCombatBtn('🔥 Firebolt', () => castSpell('Firebolt'), 'fire');
+    
+    if (state.player.spells && state.player.spells.includes('Ice Shard')) {
+        addCombatBtn('❄️ Ice Shard', () => castSpell('Ice Shard'), 'ice');
+    }
+    if (state.player.spells && state.player.spells.includes('Divine Light')) {
+        addCombatBtn('✨ Divine Light', () => castSpell('Divine Light'), 'divine');
+    }
+    if (state.player.spells && state.player.spells.includes('Heal')) {
+        addCombatBtn('💚 Heal', () => castSpell('Heal'), 'heal');
+    }
 
-    if (state.player.spells && state.player.spells.includes('Ice Shard')) add('Ice Shard', () => castSpell('Ice Shard'));
-    if (state.player.spells && state.player.spells.includes('Divine Light')) add('Divine Light', () => castSpell('Divine Light'));
-    if (state.player.spells && state.player.spells.includes('Heal')) add('Heal', () => castSpell('Heal'));
-
-    add('Defend', defend);
-    add('Flee', fleeCombat);
+    // Utility actions
+    addCombatBtn('🛡️ Defend', defend, 'defend');
+    addCombatBtn('🏃 Flee', fleeCombat, 'flee');
 }
 
 function playerAttack(t) {

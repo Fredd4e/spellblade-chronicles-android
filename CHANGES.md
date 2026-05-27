@@ -2,6 +2,18 @@
 
 > All changes made locally only. No git push performed.
 
+## Major UI Aesthetic Overhaul (Fantasy Flavor Update)
+- Complete visual redesign for dark fantasy atmosphere:
+  - New deep vignette background and warmer stone/aged-wood color palette.
+  - New `.fantasy-panel`, `.fantasy-modal`, and themed button system (btn-holy, btn-combat, btn-action, btn-dialogue, btn-shop, spell-specific buttons).
+  - Context-aware buttons: Church actions now use elegant gold styling, Ruins use aggressive combat styling.
+- Greatly improved all major UI elements:
+  - Main panels (Stats, Story Log, Combat, Area Portrait) now use consistent fantasy framing with subtle gold borders and inset effects.
+  - All modals (Dialogue, Shop, Inventory, Character Sheet, Quest Journal, Map, Intro) upgraded with richer borders, dark stone backgrounds, and warm amber accents.
+  - Combat buttons fully redesigned with icons and color-coded spells (Fire, Ice, Heal, Divine).
+- Progress bars, location header, close buttons, and many generated UI elements polished for better immersion.
+- Overall result: The game now feels like a cohesive dark fantasy RPG instead of a generic dark UI.
+
 ## Critical Bug Fixes
 - Added missing `renameCharacter()` — player name header now works (prompt + save + toast).
 - **Equipment now matters**: Weapon bonus added to player attacks; armor bonus reduces incoming damage.

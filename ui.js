@@ -203,7 +203,24 @@ function renderActions() {
 
     actions.forEach(a => {
         const btn = document.createElement('button');
-        btn.className = 'rpg-btn flex items-center justify-center gap-2 py-3.5 px-4 bg-zinc-800 hover:bg-emerald-700/80 active:bg-emerald-600 rounded-2xl text-sm font-semibold';
+        
+        // Context-aware fantasy button styling
+        let btnClass = 'fantasy-btn rpg-btn flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm';
+        
+        const loc = state.location || '';
+        const label = (a.label || '').toLowerCase();
+        
+        if (loc === 'church' || label.includes('pray') || label.includes('seraphine') || label.includes('elara')) {
+            btnClass += ' btn-holy';
+        } else if (loc === 'ruins' || label.includes('temple') || label.includes('descend') || label.includes('explore')) {
+            btnClass += ' btn-combat';
+        } else if (loc === 'woods' || label.includes('hunt') || label.includes('woods')) {
+            btnClass += ' btn-action';
+        } else {
+            btnClass += ' btn-action';
+        }
+        
+        btn.className = btnClass;
         btn.innerHTML = `<i class=\"fas ${a.icon} mr-1.5\"></i> <span>${a.label}</span>`;
         btn.onclick = () => a.fn();
         container.appendChild(btn);
@@ -259,7 +276,14 @@ function renderDialogueOptions(npcKey, npc) {
 
     const addBtn = (label, icon, fn, enabled = true) => {
         const btn = document.createElement('button');
-        btn.className = `rpg-btn flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-sm font-semibold ${enabled ? 'bg-zinc-800 hover:bg-emerald-700/80 active:bg-emerald-600' : 'bg-zinc-800/50 text-zinc-500 cursor-not-allowed'}`;
+        let btnClass = `fantasy-btn rpg-btn flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-sm ${enabled ? 'btn-dialogue' : 'bg-zinc-800/50 text-zinc-500 cursor-not-allowed border border-zinc-700'}`;
+        
+        // Special holy treatment for shop in church dialogue
+        if (label === 'Shop' && (npcKey === 'nun' || npcKey === 'mother')) {
+            btnClass = btnClass.replace('btn-dialogue', 'btn-holy');
+        }
+        
+        btn.className = btnClass;
         btn.innerHTML = `<i class=\"fas ${icon} mr-1.5\"></i> <span>${label}</span>`;
         if (enabled) btn.onclick = fn;
         container.appendChild(btn);
@@ -476,13 +500,13 @@ function showShopModal(npcKey = null) {
         shopModal.id = 'shop-modal';
         shopModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         shopModal.innerHTML = `
-            <div class="bg-zinc-900 rounded-3xl w-full max-w-[620px] border border-zinc-700">
-                <div class="flex justify-between items-center p-5 border-b border-zinc-700">
+            <div class="fantasy-modal rounded-3xl w-full max-w-[620px]">
+                <div class="flex justify-between items-center p-5 fantasy-modal-header border-b border-amber-900/30">
                     <h3 id="shop-title" class="font-bold text-xl text-amber-300"><i class="fas fa-store mr-2"></i> Merchant's Wares</h3>
-                    <button onclick="document.getElementById('shop-modal').style.display='none'" class="text-2xl leading-none text-zinc-400 hover:text-white">&times;</button>
+                    <button onclick="document.getElementById('shop-modal').style.display='none'" class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
                 </div>
-                <div class="p-5 max-h-[420px] overflow-auto" id="shop-items"></div>
-                <div class="p-4 border-t border-zinc-700 text-right text-sm">
+                <div class="p-5 max-h-[420px] overflow-auto bg-[#161410]" id="shop-items"></div>
+                <div class="p-4 fantasy-modal-header border-t border-amber-900/20 text-right text-sm">
                     Your Gold: <span id="shop-gold" class="font-bold text-yellow-400"></span>
                 </div>
             </div>
@@ -517,19 +541,21 @@ function showShopModal(npcKey = null) {
 
     itemsToSell.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = 'flex items-center justify-between p-3 mb-2 bg-zinc-800 rounded-2xl gap-3';
+        const isHoly = item.isHoly || (npcKey === 'nun' || npcKey === 'mother');
+        div.className = `flex items-center justify-between p-3 mb-2 rounded-2xl gap-3 ${isHoly ? 'bg-[#25221e] border border-amber-900/40' : 'bg-zinc-800'}`;
+        
         const imgSrc = item.image || 'assets/items/iron-sword.jpg';
         div.innerHTML = `
             <div class="flex items-center gap-3 min-w-0">
                 <img src="${imgSrc}" class="w-14 h-14 object-cover rounded-xl border border-zinc-700 flex-shrink-0" alt="${item.name}" onerror="this.style.display='none'">
                 <div class="min-w-0">
-                    <div class="font-semibold">${item.name}</div>
+                    <div class="font-semibold text-sm">${item.name}</div>
                     <div class="text-xs text-zinc-400">${item.effect || ''}</div>
                 </div>
             </div>
             <div class="text-right flex-shrink-0">
-                <div class="text-yellow-400 font-bold">${item.price}g</div>
-                <button class="mt-1 px-4 py-1 text-sm bg-emerald-700 hover:bg-emerald-600 rounded-xl" data-index="${index}">Buy</button>
+                <div class="text-yellow-400 font-bold text-sm">${item.price}g</div>
+                <button class="mt-1.5 px-4 py-1 text-xs fantasy-btn ${isHoly ? 'btn-holy' : 'btn-shop'} rounded-lg" data-index="${index}">Buy</button>
             </div>
         `;
 
@@ -593,9 +619,10 @@ function buyItem(item, button) {
 
     showToast(msg || 'Transaction complete.', 'success');
 
-    button.textContent = 'Bought';
+    button.textContent = '✓ Bought';
     button.disabled = true;
-    button.classList.add('opacity-50');
+    button.classList.add('opacity-60', 'btn-dialogue');
+    button.classList.remove('btn-holy', 'btn-shop');
 
     // Refresh shop list after short delay so player sees updated gold
     setTimeout(() => {
@@ -637,12 +664,12 @@ function showCharacterModal() {
         charModal.id = 'character-modal';
         charModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         charModal.innerHTML = `
-            <div class="bg-zinc-900 rounded-3xl w-full max-w-[580px] border border-zinc-700">
-                <div class="flex justify-between items-center p-5 border-b border-zinc-700">
+            <div class="fantasy-modal rounded-3xl w-full max-w-[580px]">
+                <div class="flex justify-between items-center p-5 fantasy-modal-header border-b border-amber-900/30">
                     <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-user mr-2"></i> Character Sheet</h3>
-                    <button onclick="document.getElementById('character-modal').style.display='none'" class="text-2xl text-zinc-400 hover:text-white">&times;</button>
+                    <button onclick="document.getElementById('character-modal').style.display='none'" class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
                 </div>
-                <div class="p-5" id="character-content"></div>
+                <div class="p-5 bg-[#161410]" id="character-content"></div>
             </div>
         `;
         document.body.appendChild(charModal);
@@ -692,7 +719,7 @@ function showCharacterModal() {
                 <div class="flex justify-between py-0.5"><span>XP</span> <span class="font-mono">${p.xp || 0}/100</span></div>
                 <div class="flex justify-between py-0.5"><span>Gold</span> <span class="font-mono text-yellow-400">${p.gold || 0}</span></div>
 
-                <div class="mt-3 pt-2 border-t border-zinc-700 text-[13px]">
+                <div class="mt-3 pt-2 border-t border-amber-900/30 text-[13px]">
                     <div class="font-semibold text-xs text-zinc-400 mb-1">CORE STATS</div>
 
                     <div class="flex justify-between py-0.5" title="Increases melee damage and carry weight feel">
@@ -848,13 +875,13 @@ function showInventory() {
         m.id = 'inv-m';
         m.className = 'fixed inset-0 bg-black/80 z-[95] flex items-center justify-center p-4';
         m.innerHTML = `
-            <div class="bg-zinc-900 rounded-3xl max-w-md w-full p-5 border border-zinc-700">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-lg">Inventory</h3>
-                    <button onclick="hideInv()" class="text-zinc-400 hover:text-white text-2xl leading-none">&times;</button>
+            <div class="fantasy-modal rounded-3xl max-w-md w-full p-5">
+                <div class="flex justify-between items-center mb-3 fantasy-modal-header -mx-5 -mt-5 px-5 py-4 rounded-t-3xl border-b border-amber-900/20">
+                    <h3 class="font-bold text-lg text-amber-300">Inventory</h3>
+                    <button onclick="hideInv()" class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
                 </div>
                 <div id="inv-l" class="max-h-[320px] overflow-auto pr-1 space-y-1.5"></div>
-                <div class="mt-4 text-xs text-zinc-500">Tap Use to consume potions. Gear is equipped via the shop.</div>
+                <div class="mt-4 text-xs text-amber-900/70 border-t border-amber-900/20 pt-3">Tap Use to consume potions. Gear is equipped via the shop.</div>
             </div>`;
         document.body.appendChild(m);
     }
@@ -885,8 +912,8 @@ function showInventory() {
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                    ${isConsumable ? `<button class="px-3 py-1 text-sm bg-emerald-700 hover:bg-emerald-600 rounded-xl active:scale-[0.985]" onclick="useInvItem(${i})">Use</button>` : ''}
-                    <button class="px-3 py-1 text-sm bg-zinc-700 hover:bg-red-900/70 text-red-300 rounded-xl" onclick="dropInvItem(${i})">Drop</button>
+                    ${isConsumable ? `<button class="px-3 py-1 text-xs fantasy-btn btn-shop rounded-lg active:scale-[0.985]" onclick="useInvItem(${i})">Use</button>` : ''}
+                    <button class="px-3 py-1 text-xs fantasy-btn bg-[#2a2119] text-amber-300 border border-amber-900/50 hover:bg-[#3a2a1f] rounded-lg" onclick="dropInvItem(${i})">Drop</button>
                 </div>
             `;
             list.appendChild(row);
@@ -977,13 +1004,13 @@ function showQuestJournal() {
         journal.id = 'quest-journal';
         journal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[130] p-4';
         journal.innerHTML = `
-            <div class="bg-zinc-900 rounded-3xl w-full max-w-[680px] border border-zinc-700 shadow-2xl overflow-hidden">
-                <div class="flex justify-between items-center p-5 border-b border-zinc-700 bg-zinc-950/70">
+            <div class="fantasy-modal rounded-3xl w-full max-w-[680px] overflow-hidden">
+                <div class="flex justify-between items-center p-5 fantasy-modal-header border-b border-amber-900/30">
                     <h3 class="font-bold text-xl text-amber-300"><i class="fas fa-scroll mr-2"></i> Quest Journal</h3>
-                    <button onclick="document.getElementById('quest-journal').style.display='none'" class="text-2xl text-zinc-400 hover:text-white">&times;</button>
+                    <button onclick="document.getElementById('quest-journal').style.display='none'" class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
                 </div>
-                <div class="p-5 max-h-[70vh] overflow-auto" id="quest-journal-content"></div>
-                <div class="p-3 border-t border-zinc-700 text-xs text-zinc-500 text-center">
+                <div class="p-5 max-h-[70vh] overflow-auto bg-[#161410]" id="quest-journal-content"></div>
+                <div class="p-3 fantasy-modal-header border-t border-amber-900/20 text-xs text-amber-900/70 text-center">
                     Active quests and their current progress
                 </div>
             </div>
@@ -997,11 +1024,11 @@ function showQuestJournal() {
     const activeQuests = getActiveQuestsForJournal();
 
     if (activeQuests.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-zinc-400">You have no active quests.</div>`;
+        container.innerHTML = `<div class="text-center py-8 text-amber-900/70 italic">You have no active quests.</div>`;
     } else {
         activeQuests.forEach(q => {
             const div = document.createElement('div');
-            div.className = 'mb-4 bg-zinc-800 rounded-2xl p-4 border border-zinc-700';
+            div.className = 'mb-4 fantasy-panel rounded-2xl p-4 border border-amber-900/20';
 
             const progressHtml = q.objectives.map(obj => {
                 const pct = obj.max ? Math.min(100, Math.floor((obj.current / obj.max) * 100)) : (obj.complete ? 100 : 0);
@@ -1011,7 +1038,7 @@ function showQuestJournal() {
                             <span>${obj.text}</span>
                             <span class="text-emerald-400 font-mono">${obj.current || 0}${obj.max ? '/' + obj.max : ''}</span>
                         </div>
-                        <div class="h-1.5 bg-zinc-700 rounded"><div class="h-1.5 bg-emerald-600 rounded" style="width:${pct}%"></div></div>
+                        <div class="h-1.5 fantasy-stat-bar rounded"><div class="h-1.5 bg-emerald-600 rounded" style="width:${pct}%"></div></div>
                     </div>
                 `;
             }).join('');
@@ -1036,7 +1063,7 @@ function showQuestJournal() {
                 </div>
 
                 <div class="mt-3 pt-3 border-t border-zinc-700">
-                    <button onclick="toggleJournalLore('${loreId}')" class="text-xs px-2 py-1 bg-zinc-700 hover:bg-zinc-600 rounded flex items-center gap-1">
+                    <button onclick="toggleJournalLore('${loreId}')" class="text-xs px-2 py-1 fantasy-btn btn-action rounded flex items-center gap-1">
                         <i class="fas fa-book-open"></i> <span>Lore &amp; Details</span>
                     </button>
                     <div id="${loreId}" class="hidden mt-2 text-xs text-zinc-400 leading-relaxed border-l-2 border-amber-900 pl-3">
