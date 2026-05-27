@@ -188,6 +188,16 @@ const Lore = {
             hasQuests: true,
             hasShop: false,
             type: "aelric"
+        },
+        mother: {
+            name: "Mother Seraphine",
+            portrait: "assets/npcs/mother_seraphine.jpg",
+            title: "High Mother of the Silver Light",
+            age: 48,
+            married: "Widowed",
+            hasQuests: false,
+            hasShop: true,
+            type: "mother"
         }
     },
 
@@ -249,6 +259,18 @@ const Lore = {
             "<b>Aelric:</b> 'If you find my Sunsteel Sigil... bring it to me. Perhaps then I can finally rest... and give you what power remains in these stones.'"
         ],
         questOffer: "The Sigil was shattered and scattered when the seal cracked. Find the largest piece in the deepest sanctum. Only then can I pass on my final gift."
+    },
+
+    // Mother Seraphine (Sister Elara's mother, senior nun)
+    mother: {
+        greeting: "The Light has guided you here, child. My daughter Elara speaks highly of you.",
+        talk: [
+            "<b>Mother Seraphine:</b> 'I raised Elara in these very halls. She was always too soft-hearted for this world... but perhaps that is what the Light needs most right now.'",
+            "<b>Mother Seraphine:</b> 'The corruption in the temple is older than any of us. My husband gave his life trying to reinforce the old wards. I still wear his ring beneath these robes.'",
+            "<b>Mother Seraphine:</b> 'If you truly wish to help, speak with my daughter first. She carries the gentler half of the faith. I carry the resolve.'",
+            "<b>Mother Seraphine:</b> 'The faithful have grown fewer, but those who remain burn all the brighter. Do not let the shadows dim that flame.'"
+        ],
+        shopIntro: "I keep a small collection of relics and consecrated arms for those who walk the true path. They are not for the faint of heart."
     }
 };
 

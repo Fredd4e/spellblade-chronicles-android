@@ -29,7 +29,8 @@ let state = {
     inCombat: false,
     enemy: null,
     story: [],
-    lastLootTime: 0
+    lastLootTime: 0,
+    templeLevel: 1   // New: 1 = standard Ruins, 2 & 3 = deeper dungeon levels
 };
 
 let storyOpen = true;
@@ -104,6 +105,11 @@ function load() {
                     church: "Church of the Silver Light"
                 };
                 state.locationName = nameMap[state.location] || state.location;
+            }
+
+            // Ensure templeLevel exists (for Ruins dungeon)
+            if (typeof state.templeLevel !== 'number' || state.templeLevel < 1) {
+                state.templeLevel = 1;
             }
 
             recalculateMaxStats();

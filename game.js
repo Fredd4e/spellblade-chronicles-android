@@ -7,15 +7,19 @@ function travel(newLoc) {
 
     if (newLoc === 'village') {
         state.locationName = "Eldoria Village Square";
+        if (old === 'ruins') state.templeLevel = 1; // Reset dungeon progress
     } else if (newLoc === 'woods') {
         state.locationName = "Whispering Woods";
         if (old !== 'woods' && window.Lore && Lore.travel) log(Lore.travel.woods, true);
+        if (old === 'ruins') state.templeLevel = 1;
     } else if (newLoc === 'ruins') {
         state.locationName = "Ruined Temple";
         if (old !== 'ruins' && window.Lore && Lore.travel) log(Lore.travel.ruins, true);
+        if (!state.templeLevel) state.templeLevel = 1;
     } else if (newLoc === 'church') {
         state.locationName = "Church of the Silver Light";
         log("You step into the quiet warmth of the old church.", true);
+        if (old === 'ruins') state.templeLevel = 1;
     }
 
     showAreaPortrait(newLoc);
@@ -46,24 +50,41 @@ function exploreWoods() {
 
 function exploreRuins() {
     if (state.inCombat) return;
-    log('Entering the ruins...');
 
-    // Quest 2 progress for simply braving the temple
+    const level = state.templeLevel || 1;
+    log(`Exploring the Ruined Temple (Level ${level})...`);
+
+    // Quest 2 progress
     if ((state.quest || 0) >= 2 || (state.kills || 0) >= 3) {
         state.templeProgress = (state.templeProgress || 0) + 1;
     }
 
-    const roll = Math.random();
-    if (roll < 0.45) {
-        startCombat('skeleton');
-    } else if (roll < 0.68) {
-        startCombat('guardian');
-    } else if (roll < 0.82 && (state.quest || 0) >= 1) {
-        startCombat('fallen');
-    } else {
-        searchLoot(true);
+    // Level-based enemy pools
+    if (level === 1) {
+        const roll = Math.random();
+        if (roll < 0.5) startCombat('skeleton');
+        else if (roll < 0.75) startCombat('guardian');
+        else if (roll < 0.88 && (state.quest || 0) >= 1) startCombat('fallen');
+        else searchLoot(true);
+    } 
+    else if (level === 2) {
+        const roll = Math.random();
+        if (roll < 0.4) startCombat('guardian');
+        else if (roll < 0.7) startCombat('succubus');
+        else if (roll < 0.85) startCombat('demoness');
+        else searchLoot(true);
+    } 
+    else {
+        // Level 3 - hardest
+        const roll = Math.random();
+        if (roll < 0.35) startCombat('demoness');
+        else if (roll < 0.6) startCombat('overlord');
+        else if (roll < 0.8) startCombat('fallen');
+        else searchLoot(true);
     }
 }
+
+// descendTemple is defined in ui.js (global)
 
 function searchLoot(silent = false) {
     if (state.inCombat) return;

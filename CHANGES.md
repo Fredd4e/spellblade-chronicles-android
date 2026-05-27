@@ -54,6 +54,15 @@
 - Equipped items and purchased consumables now correctly carry their image data.
 - All images live in `assets/items/` and are referenced from `lore.js` item definitions.
 
+## New Feature: Ruined Temple Dungeon (Levels)
+- The Ruins now have **3 progressive levels** (a mini-dungeon).
+- Start at Level 1. Use the new **"Descend to Level X"** button to go deeper.
+- Each deeper level has stronger and more dangerous enemies, including new **Female Demons** (Succubus Warmaiden, Demoness Guardian, Demoness Overlord).
+- New creature images added for the female demons (consistent dark fantasy style, following the requested aesthetic).
+- Minimalistic level tracker now appears next to "Ruined Temple" in the location bar (e.g. **Ruined Temple [1 - 2 - 3]** with the current level bolded).
+- Temple level resets when leaving the Ruins.
+- Stronger enemies and better risk/reward as you go deeper.
+
 ## Story & World Expansion
 - Added two new major characters with full portraits (generated consistently):
   - **Thorne the Warden** (Woods) — Grizzled former temple guardian turned hunter.

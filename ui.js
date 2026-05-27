@@ -131,7 +131,18 @@ function updateStats() {
 
     if ($('hp-bar')) $('hp-bar').style.width = Math.max(5, Math.min(100, ((p.hp || 0) / (p.maxHp || 50)) * 100)) + '%';
     if ($('mp-bar')) $('mp-bar').style.width = Math.max(5, Math.min(100, ((p.mp || 0) / (p.maxMp || 20)) * 100)) + '%';
-    if ($('location')) $('location').textContent = state.locationName || state.location || 'Eldoria Village Square';
+    if ($('location')) {
+        let locText = state.locationName || state.location || 'Eldoria Village Square';
+
+        // Minimalistic Ruins dungeon level tracker
+        if (state.location === 'ruins') {
+            const lvl = state.templeLevel || 1;
+            const tracker = [1,2,3].map(n => n === lvl ? `<b>${n}</b>` : n).join(' - ');
+            locText = `Ruined Temple <span class="text-amber-400">[${tracker}]</span>`;
+        }
+
+        $('location').innerHTML = locText;
+    }
 }
 
 function renderStory() {
@@ -171,13 +182,20 @@ function renderActions() {
         actions = [
             { label: 'Explore Temple Depths', icon: 'fa-dungeon', fn: exploreRuins },
             { label: 'Search Ancient Stones', icon: 'fa-search', fn: searchLoot },
-            { label: 'Commune with the Bound', icon: 'fa-ghost', fn: () => startDialogue('aelric') },
-            { label: 'Return to Village', icon: 'fa-home', fn: () => travel('village') }
+            { label: 'Commune with the Bound', icon: 'fa-ghost', fn: () => startDialogue('aelric') }
         ];
+
+        const lvl = state.templeLevel || 1;
+        if (lvl < 3) {
+            actions.push({ label: `Descend to Level ${lvl + 1}`, icon: 'fa-arrow-down', fn: descendTemple });
+        }
+
+        actions.push({ label: 'Return to Village', icon: 'fa-home', fn: () => travel('village') });
     }
     else if (loc === 'church') {
         actions = [
             { label: 'Speak with Sister Elara', icon: 'fa-pray', fn: () => startDialogue('nun') },
+            { label: 'Speak with Mother Seraphine', icon: 'fa-pray', fn: () => startDialogue('mother') },
             { label: 'Pray for Strength', icon: 'fa-hands-praying', fn: prayAtChurch },
             { label: 'Return to the Square', icon: 'fa-home', fn: () => travel('village') }
         ];
@@ -293,6 +311,15 @@ function dialogueTalk(npcKey) {
         // Show one of her lore lines occasionally
         if (Math.random() < 0.6 && nunData.talk && nunData.talk.length) {
             const loreLine = nunData.talk[Math.floor(Math.random() * nunData.talk.length)];
+            log(loreLine, true);
+        }
+    } else if (npcKey === 'mother') {
+        const motherData = (window.Lore && Lore.mother) || {};
+        message = motherData.greeting || "The Light welcomes you, child.";
+        log(`<b>Mother Seraphine:</b> ${message.replace(/<[^>]+>/g, '')}`, true);
+
+        if (Math.random() < 0.55 && motherData.talk && motherData.talk.length) {
+            const loreLine = motherData.talk[Math.floor(Math.random() * motherData.talk.length)];
             log(loreLine, true);
         }
     } else if (npcKey === 'thorne') {
@@ -466,7 +493,7 @@ function showShopModal(npcKey = null) {
     // Set nice title based on NPC
     const titleEl = document.getElementById('shop-title');
     if (titleEl) {
-        if (npcKey === 'nun') {
+        if (npcKey === 'nun' || npcKey === 'mother') {
             titleEl.innerHTML = `<i class="fas fa-pray mr-2"></i> Sacred Relics &amp; Blessings`;
         } else {
             titleEl.innerHTML = `<i class="fas fa-store mr-2"></i> Merchant's Wares`;
@@ -578,7 +605,7 @@ function buyItem(item, button) {
             if (typeof showShopModal === 'function') {
                 // Close and reopen is simplest reliable refresh
                 shopModal.style.display = 'none';
-                setTimeout(() => showShopModal(), 60);
+                setTimeout(() => showShopModal(currentShopNpc), 60);
             }
         }
     }, 650);
@@ -1095,6 +1122,20 @@ function getActiveQuestsForJournal() {
 
     return quests;
 }
+
+// Descend function for Ruins dungeon (available globally)
+window.descendTemple = function descendTemple() {
+    if (state.inCombat) return;
+    const current = state.templeLevel || 1;
+    if (current >= 3) {
+        log("You have reached the deepest level of the temple.");
+        return;
+    }
+    state.templeLevel = current + 1;
+    log(`You descend deeper into the temple... now on Level ${state.templeLevel}.`, true);
+    updateAll();
+    save();
+};
 
 // Safety
 if(typeof window.updateAll!=='function') window.updateAll=()=> { if(typeof updateStats==='function')updateStats(); if(typeof renderActions==='function')renderActions(); if(typeof renderStory==='function')renderStory(); };

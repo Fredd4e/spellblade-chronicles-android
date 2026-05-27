@@ -32,6 +32,10 @@ const ENEMY_TEMPLATES = {
     skeleton:       { name: 'Skeletal Warrior',    hp: 52, maxHp: 52,  dmg: 9  },
     shadow:         { name: 'Shadow Stalker',      hp: 61, maxHp: 61,  dmg: 11 },
     guardian:       { name: 'Temple Guardian',     hp: 78, maxHp: 78,  dmg: 13 },
+    // Female Demons (Ruins Level 2+)
+    succubus:       { name: 'Succubus Warmaiden',  hp: 68, maxHp: 68,  dmg: 12 },
+    demoness:       { name: 'Demoness Guardian',   hp: 85, maxHp: 85,  dmg: 15 },
+    overlord:       { name: 'Demoness Overlord',   hp: 110, maxHp: 110, dmg: 18, isBoss: true },
     // Boss
     fallen:         { name: 'Fallen Spellblade',   hp: 115, maxHp: 115, dmg: 16, isBoss: true }
 };
@@ -39,6 +43,9 @@ const ENEMY_TEMPLATES = {
 function getEnemyImageSrc(key, enemy) {
     const name = (enemy && enemy.name || '').toLowerCase();
     if (key === 'fallen' || name.includes('fallen')) return 'assets/creatures/fallen-spellblade.jpg';
+    if (key === 'overlord' || name.includes('overlord')) return 'assets/creatures/demoness-overlord.jpg';
+    if (key === 'demoness' || name.includes('demoness guardian')) return 'assets/creatures/demoness-guardian.jpg';
+    if (key === 'succubus' || name.includes('succubus')) return 'assets/creatures/demoness-succubus.jpg';
     if (key === 'guardian' || name.includes('guardian') || name.includes('temple')) return 'assets/creatures/temple-guardian.jpg';
     if (key === 'shadow' || name.includes('shadow') || name.includes('stalker')) return 'assets/creatures/shadow-stalker.jpg';
     if (key === 'goblin' || name.includes('goblin') || name.includes('scout')) return 'assets/creatures/goblin-scout.jpg';
