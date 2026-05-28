@@ -919,6 +919,11 @@ window.quickAssignSpell = function(spellName) {
 
 // ==================== MAP FUNCTIONS (FIXED) ====================
 
+// Map zoom / pan configuration
+const DEFAULT_MAP_ZOOM = 1.3;   // Start 30% zoomed in
+const MIN_MAP_ZOOM = 0.8;       // Max zoom out limit (don't allow too much empty space)
+const MAX_MAP_ZOOM = 4.0;
+
 function showMap() {
     const m = $('map-modal');
     if (m) {
@@ -926,16 +931,25 @@ function showMap() {
         m.classList.remove('hidden');
     }
 
-    // Make sure we have sane starting values
-    if (typeof mapZoom === 'undefined' || mapZoom === null) mapZoom = 1;
+    // Initialize with better defaults: 30% zoomed in
+    if (typeof mapZoom === 'undefined' || mapZoom === null || mapZoom < 0.1) {
+        mapZoom = DEFAULT_MAP_ZOOM;
+    }
     if (typeof mapPanX === 'undefined') mapPanX = 0;
     if (typeof mapPanY === 'undefined') mapPanY = 0;
+
+    clampMapPan();
 
     // Enable improved interactions + show current location
     setTimeout(() => {
         initMapInteractions();
         updateMapCurrentLocation();
-        updateMapTransform();   // ensure everything is in sync
+
+        // Center view on current location when first opening (nice at 1.3x default)
+        centerMapOnCurrentLocation();
+
+        clampMapPan();
+        updateMapTransform();
     }, 70);
 }
 
@@ -969,7 +983,7 @@ function updateMapTransform() {
 
 function zoomMap(delta) {
     const oldZoom = mapZoom || 1;
-    const newZoom = Math.max(0.5, Math.min(3.5, oldZoom + delta));
+    const newZoom = Math.max(MIN_MAP_ZOOM, Math.min(MAX_MAP_ZOOM, oldZoom + delta));
     setMapZoom(newZoom);
 }
 
@@ -978,7 +992,7 @@ function setMapZoom(newZoom, focalX = null, focalY = null) {
     if (!container) return;
 
     const oldZoom = mapZoom || 1;
-    const zoom = Math.max(0.5, Math.min(3.5, newZoom));
+    const zoom = Math.max(MIN_MAP_ZOOM, Math.min(MAX_MAP_ZOOM, newZoom));
 
     if (focalX !== null && focalY !== null) {
         // Zoom toward a specific point (used by wheel + pinch)
@@ -1000,6 +1014,7 @@ function setMapZoom(newZoom, focalX = null, focalY = null) {
         mapZoom = zoom;
     }
 
+    clampMapPan();
     updateMapTransform();
 
     const zl = $('zoom-level');
@@ -1007,12 +1022,77 @@ function setMapZoom(newZoom, focalX = null, focalY = null) {
 }
 
 function resetMapZoom() {
-    mapZoom = 1;
+    mapZoom = DEFAULT_MAP_ZOOM;
     mapPanX = 0;
     mapPanY = 0;
+    centerMapOnCurrentLocation();
+    clampMapPan();
     updateMapTransform();
     const zl = $('zoom-level');
-    if (zl) zl.textContent = '100%';
+    if (zl) zl.textContent = Math.round(mapZoom * 100) + '%';
+}
+
+function clampMapPan() {
+    const container = $('map-content');
+    if (!container) return;
+
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    const z = mapZoom || 1;
+
+    // The map image base size before scaling is the container size
+    const scaledW = W * z;
+    const scaledH = H * z;
+
+    // When content is larger than viewport (zoomed in), we can pan until the edge of the map
+    // touches the opposite edge of the container.
+    // Allowed range for tx: [W - scaledW, 0]
+    if (scaledW > W) {
+        const minX = W - scaledW;
+        const maxX = 0;
+        mapPanX = Math.max(minX, Math.min(maxX, mapPanX || 0));
+    } else {
+        // When zoomed out, center the map horizontally
+        mapPanX = (W - scaledW) / 2;
+    }
+
+    if (scaledH > H) {
+        const minY = H - scaledH;
+        const maxY = 0;
+        mapPanY = Math.max(minY, Math.min(maxY, mapPanY || 0));
+    } else {
+        mapPanY = (H - scaledH) / 2;
+    }
+}
+
+function centerMapOnCurrentLocation() {
+    const container = $('map-content');
+    if (!container || !state.location) return;
+
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    const z = mapZoom || DEFAULT_MAP_ZOOM;
+
+    // Approximate marker positions as percentages (same data as the pins)
+    const locationPositions = {
+        village: { x: 0.28, y: 0.62 },   // left:28%, bottom:38% → y from top ≈ 62%
+        woods:   { x: 0.48, y: 0.45 },
+        ruins:   { x: 0.78, y: 0.32 },
+        church:  { x: 0.28, y: 0.62 }
+    };
+
+    const pos = locationPositions[state.location] || locationPositions.village;
+
+    // Convert percentage to "world" pixel coordinates (relative to unscaled map)
+    const worldX = W * pos.x;
+    const worldY = H * pos.y;
+
+    // We want this world point to appear in the center of the container
+    const desiredScreenX = W / 2;
+    const desiredScreenY = H / 2;
+
+    mapPanX = desiredScreenX - worldX * z;
+    mapPanY = desiredScreenY - worldY * z;
 }
 
 function updateMapCurrentLocation() {
@@ -1083,6 +1163,7 @@ function initMapInteractions() {
         dragStartX = e.clientX;
         dragStartY = e.clientY;
 
+        clampMapPan();
         updateMapTransform();
     });
 
@@ -1093,6 +1174,10 @@ function initMapInteractions() {
         mapPointerId = null;
         try { container.releasePointerCapture(e.pointerId); } catch (_) {}
         container.style.cursor = 'grab';
+
+        // Final safety clamp
+        clampMapPan();
+        updateMapTransform();
     };
 
     container.addEventListener('pointerup', endPointer);
@@ -1103,7 +1188,7 @@ function initMapInteractions() {
         e.preventDefault();
 
         const delta = e.deltaY < 0 ? 0.18 : -0.18;   // smooth step
-        const newZoom = Math.max(0.5, Math.min(3.5, (mapZoom || 1) + delta));
+        const newZoom = Math.max(MIN_MAP_ZOOM, Math.min(MAX_MAP_ZOOM, (mapZoom || 1) + delta));
 
         // Zoom toward mouse cursor position
         setMapZoom(newZoom, e.clientX, e.clientY);
@@ -1124,7 +1209,7 @@ function initMapInteractions() {
             const currentDist = getTouchDistance(e.touches);
             if (lastTouchDist > 0) {
                 const zoomFactor = currentDist / lastTouchDist;
-                const newZoom = Math.max(0.5, Math.min(3.5, (mapZoom || 1) * zoomFactor));
+                const newZoom = Math.max(MIN_MAP_ZOOM, Math.min(MAX_MAP_ZOOM, (mapZoom || 1) * zoomFactor));
 
                 // Use midpoint of the two fingers as focal point
                 const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
@@ -1145,6 +1230,7 @@ function initMapInteractions() {
     mapInteractionsInitialized = true;
 
     // Initial transform + markers
+    clampMapPan();
     updateMapTransform();
 }
 
