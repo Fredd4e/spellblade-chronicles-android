@@ -131,6 +131,17 @@ function updateStats() {
 
     if ($('hp-bar')) $('hp-bar').style.width = Math.max(5, Math.min(100, ((p.hp || 0) / (p.maxHp || 50)) * 100)) + '%';
     if ($('mp-bar')) $('mp-bar').style.width = Math.max(5, Math.min(100, ((p.mp || 0) / (p.maxMp || 20)) * 100)) + '%';
+
+    // Combat player HUD bars (if combat is active)
+    const chp = p.hp || 0, chpmax = p.maxHp || 50;
+    const cmp = p.mp || 0, cmpmax = p.maxMp || 20;
+    const chpPct = Math.max(5, Math.min(100, (chp / chpmax) * 100));
+    const cmpPct = Math.max(5, Math.min(100, (cmp / cmpmax) * 100));
+    if ($('combat-player-hp-bar')) $('combat-player-hp-bar').style.width = chpPct + '%';
+    if ($('combat-player-mp-bar')) $('combat-player-mp-bar').style.width = cmpPct + '%';
+    if ($('combat-player-hp')) $('combat-player-hp').textContent = `${chp}/${chpmax}`;
+    if ($('combat-player-mp')) $('combat-player-mp').textContent = `${cmp}/${cmpmax}`;
+
     if ($('location')) {
         let locText = state.locationName || state.location || 'Eldoria Village Square';
 
@@ -494,7 +505,7 @@ function showShopModal(npcKey = null) {
         shopModal.id = 'shop-modal';
         shopModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         shopModal.innerHTML = `
-            <div class="fantasy-modal rounded-3xl w-full max-w-[620px]">
+            <div class="fantasy-modal rounded-3xl w-full max-w-[620px] overflow-hidden">
                 <div class="flex justify-between items-center p-5 fantasy-modal-header border-b border-amber-900/30">
                     <h3 id="shop-title" class="font-bold text-xl text-amber-300"><i class="fas fa-store mr-2"></i> Merchant's Wares</h3>
                     <button onclick="document.getElementById('shop-modal').style.display='none'" class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
@@ -686,7 +697,7 @@ function showCharacterModal() {
         charModal.id = 'character-modal';
         charModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-[120] p-4';
         charModal.innerHTML = `
-            <div class="fantasy-modal rounded-3xl w-full max-w-[620px]">
+            <div class="fantasy-modal rounded-3xl w-full max-w-[620px] overflow-hidden">
                 <!-- Header with Tabs -->
                 <div class="flex justify-between items-center p-5 fantasy-modal-header border-b border-amber-900/30">
                     <div class="flex gap-1">
@@ -703,7 +714,7 @@ function showCharacterModal() {
                             class="fantasy-btn btn-action text-xl leading-none px-2 py-0 rounded">&times;</button>
                 </div>
                 
-                <div class="p-5 bg-[#161410]" id="character-content"></div>
+                <div class="p-5 bg-[#161410] rounded-b-3xl" id="character-content"></div>
             </div>
         `;
         document.body.appendChild(charModal);
@@ -831,7 +842,7 @@ function renderCharacterContent(tab) {
                 </div>
             </div>
 
-            <div style="background-image: url('assets/spells/spellbook_bg.jpg'); background-size: cover; background-position: center; border-radius: 8px; padding: 8px; background-color: rgba(20,17,14,0.85); background-blend-mode: multiply;">
+            <div class="rounded-2xl" style="background-image: url('assets/spells/spellbook_bg.jpg'); background-size: cover; background-position: center; padding: 8px; background-color: rgba(20,17,14,0.85); background-blend-mode: multiply;">
                 <div class="text-amber-400 text-sm font-semibold mb-2 px-1">SPELLBOOK</div>
                 <div class="grid grid-cols-2 gap-2">
                     ${knownSpells.map(spell => {

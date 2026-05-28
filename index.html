@@ -191,6 +191,16 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
 
+        /* Smooth bar animations everywhere */
+        .hp-bar, .mp-bar, .enemy-hp-bar {
+            transition: width 220ms cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        /* Combat player HUD polish */
+        #combat .rounded-2xl.border-amber-900\/40 {
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+        }
+
         /* Modal Chrome - Richer fantasy treatment */
         .fantasy-modal {
             background: #1a1713;
@@ -342,10 +352,35 @@
     <!-- Combat (can become fullscreen overlay like dialogue modal) -->
     <div id="combat" class="hidden">
         <div class="combat-panel fantasy-modal rounded-3xl w-full max-w-[620px] p-5">
+            <!-- Player Combat HUD (compact + immersive) -->
+            <div class="mb-3 rounded-2xl border border-amber-900/40 bg-[#11100e] px-3 py-2">
+                <div class="flex items-center gap-x-3">
+                    <div class="text-[10px] font-semibold tracking-[1px] text-amber-400/90 flex-shrink-0">YOU</div>
+                    <div class="flex-1 space-y-[3px] min-w-0">
+                        <!-- HP Row -->
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-heart text-red-500 w-3 text-center text-xs flex-shrink-0"></i>
+                            <div class="flex-1 h-1.5 fantasy-stat-bar rounded-full overflow-hidden">
+                                <div id="combat-player-hp-bar" class="h-1.5 hp-bar rounded-full transition-all duration-200" style="width:100%"></div>
+                            </div>
+                            <div id="combat-player-hp" class="font-mono text-[10px] text-red-300 tabular-nums w-[46px] text-right flex-shrink-0">50/50</div>
+                        </div>
+                        <!-- MP Row -->
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-magic text-sky-400 w-3 text-center text-xs flex-shrink-0"></i>
+                            <div class="flex-1 h-1.5 fantasy-stat-bar rounded-full overflow-hidden">
+                                <div id="combat-player-mp-bar" class="h-1.5 mp-bar rounded-full transition-all duration-200" style="width:100%"></div>
+                            </div>
+                            <div id="combat-player-mp" class="font-mono text-[10px] text-sky-300 tabular-nums w-[46px] text-right flex-shrink-0">20/20</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Enemy Header -->
-            <div class="flex gap-4 mb-4">
+            <div class="flex gap-4 mb-3">
                 <div class="flex-shrink-0">
-                    <img id="enemy-img" class="w-40 h-40 md:w-48 md:h-48 object-cover rounded-2xl border-2 border-red-800/70" alt="Enemy">
+                    <img id="enemy-img" class="w-36 h-36 md:w-44 md:h-44 object-cover rounded-2xl border-2 border-red-800/70" alt="Enemy">
                 </div>
                 <div class="flex-1 min-w-0 pt-1">
                     <div id="enemy-name" class="font-bold text-red-400 text-2xl"></div>
@@ -364,7 +399,7 @@
             <!-- Full-width Combat Log -->
             <div class="mb-3">
                 <div class="text-xs text-red-400/70 mb-1 px-1">Combat Log</div>
-                <div id="combat-log" class="text-sm bg-[#11100e] border border-red-900/40 p-3 rounded-xl h-32 overflow-auto text-[#d4c9a8] leading-relaxed combat-log-full"></div>
+                <div id="combat-log" class="text-sm bg-[#11100e] border border-red-900/40 p-3 rounded-xl h-28 overflow-auto text-[#d4c9a8] leading-relaxed combat-log-full"></div>
             </div>
 
             <!-- Action Buttons -->

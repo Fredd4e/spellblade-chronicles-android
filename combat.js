@@ -102,6 +102,9 @@ function startCombat(key = 'beast') {
         combatEl.classList.add('combat-overlay');
         document.body.classList.add('combat-active');
     }
+
+    // Initialize player combat HUD bars immediately
+    if (typeof updateStats === 'function') updateStats();
 }
 
 function renderCombatButtons() {
