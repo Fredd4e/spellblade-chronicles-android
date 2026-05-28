@@ -95,11 +95,12 @@ function startCombat(key = 'beast') {
     renderCombatButtons();
     $('actions').innerHTML = '';
 
-    // Move combat panel to the top of the screen for focus
+    // Activate fullscreen combat overlay (like dialogue modal)
     const combatEl = $('combat');
-    const container = document.querySelector('.game-container');
-    if (combatEl && container && combatEl.parentNode !== container) {
-        container.insertBefore(combatEl, container.firstChild);
+    if (combatEl) {
+        combatEl.classList.remove('hidden');
+        combatEl.classList.add('combat-overlay');
+        document.body.classList.add('combat-active');
     }
 }
 
@@ -343,7 +344,14 @@ function fleeCombat(){
 
 function endCombat(win) {
     state.inCombat = false;
-    $('combat').classList.add('hidden');
+
+    const combatEl = $('combat');
+    if (combatEl) {
+        combatEl.classList.remove('combat-overlay');
+        combatEl.classList.add('hidden');
+    }
+    document.body.classList.remove('combat-active');
+
     if ($('combat-buttons')) $('combat-buttons').innerHTML = '';
 
     const eimg = $('enemy-img');

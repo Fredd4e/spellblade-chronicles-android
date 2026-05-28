@@ -2,6 +2,15 @@
 
 > All changes made locally only. No git push performed.
 
+## Combat Window Fullscreen Overhaul
+- Combat now opens as a **true full-screen overlay** (exactly like the Dialogue modal):
+  - Dark backdrop covering the entire screen
+  - Centered fantasy-styled panel (max-width 620px)
+  - All other UI (story log, location, actions, bottom buttons) is hidden for full immersion
+  - Much larger enemy portrait, taller combat log, and prominent action buttons
+- Combat feels like a dedicated "encounter screen" rather than just another box in the layout
+- Clean return to normal UI when combat ends
+
 ## Spellbook System + Custom Icons
 - Complete overhaul of the magic UI:
   - Character window now has proper **tabs**: "Character" and "Spellbook" (WoW-style).

@@ -223,6 +223,41 @@
         .hp-bar { background: linear-gradient(to right, #4ade80, #22c55e); }
         .mp-bar { background: linear-gradient(to right, #60a5fa, #3b82f6); }
         .enemy-hp-bar { background: linear-gradient(to right, #f87171, #ef4444); }
+
+        /* Fullscreen Combat Overlay (like dialogue modal) */
+        #combat.combat-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 1rem;
+        }
+
+        #combat.combat-overlay .combat-panel {
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px -15px rgb(0 0 0 / 0.6);
+        }
+
+        /* Hide normal UI during fullscreen combat */
+        body.combat-active .story-log,
+        body.combat-active .location-header,
+        body.combat-active #actions,
+        body.combat-active .flex.gap-3.pt-1 {
+            display: none !important;
+        }
+
+        body.combat-active .game-container {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        #combat.combat-overlay .combat-log-full {
+            height: 180px;
+        }
         
         /* Area portrait styling */
         #area-portrait { transition: all 0.3s ease; }
@@ -304,35 +339,37 @@
     <!-- Actions -->
     <div id="actions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
-    <!-- Combat -->
-    <div id="combat" class="hidden fantasy-panel border-red-900/60 rounded-2xl p-4 mb-4">
-        <!-- Enemy Header (similar to dialogue style) -->
-        <div class="flex gap-4 mb-3">
-            <div class="flex-shrink-0">
-                <img id="enemy-img" class="w-36 h-36 object-cover rounded-2xl border-2 border-red-800/70" alt="Enemy">
-            </div>
-            <div class="flex-1 min-w-0 pt-1">
-                <div id="enemy-name" class="font-bold text-red-400 text-xl"></div>
-                <div class="text-xs text-red-400/70 mb-2">Hostile Entity</div>
-                
-                <div class="mb-1">
-                    <div class="flex justify-between text-sm mb-1 text-red-200">
-                        <span>HP</span> 
-                        <span><span id="enemy-hp"></span> / <span id="enemy-max"></span></span>
+    <!-- Combat (can become fullscreen overlay like dialogue modal) -->
+    <div id="combat" class="hidden">
+        <div class="combat-panel fantasy-modal rounded-3xl w-full max-w-[620px] p-5">
+            <!-- Enemy Header -->
+            <div class="flex gap-4 mb-4">
+                <div class="flex-shrink-0">
+                    <img id="enemy-img" class="w-40 h-40 md:w-48 md:h-48 object-cover rounded-2xl border-2 border-red-800/70" alt="Enemy">
+                </div>
+                <div class="flex-1 min-w-0 pt-1">
+                    <div id="enemy-name" class="font-bold text-red-400 text-2xl"></div>
+                    <div class="text-xs text-red-400/70 mb-2">Hostile Entity</div>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1 text-red-200">
+                            <span>HP</span> 
+                            <span><span id="enemy-hp"></span> / <span id="enemy-max"></span></span>
+                        </div>
+                        <div class="h-3 fantasy-stat-bar rounded"><div id="enemy-hp-bar" class="h-3 enemy-hp-bar rounded" style="width:100%"></div></div>
                     </div>
-                    <div class="h-2.5 fantasy-stat-bar rounded"><div id="enemy-hp-bar" class="h-2.5 enemy-hp-bar rounded" style="width:100%"></div></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Full-width Combat Log -->
-        <div class="mb-2">
-            <div class="text-xs text-red-400/70 mb-1 px-1">Combat Log</div>
-            <div id="combat-log" class="text-sm bg-[#11100e] border border-red-900/40 p-3 rounded-xl h-28 overflow-auto text-[#d4c9a8] leading-relaxed"></div>
-        </div>
+            <!-- Full-width Combat Log -->
+            <div class="mb-3">
+                <div class="text-xs text-red-400/70 mb-1 px-1">Combat Log</div>
+                <div id="combat-log" class="text-sm bg-[#11100e] border border-red-900/40 p-3 rounded-xl h-32 overflow-auto text-[#d4c9a8] leading-relaxed combat-log-full"></div>
+            </div>
 
-        <!-- Action Buttons -->
-        <div id="combat-buttons" class="grid grid-cols-2 gap-2"></div>
+            <!-- Action Buttons -->
+            <div id="combat-buttons" class="grid grid-cols-2 gap-2"></div>
+        </div>
     </div>
 
     <!-- Bottom Buttons -->
