@@ -925,8 +925,18 @@ function showMap() {
         m.style.display = 'flex';
         m.classList.remove('hidden');
     }
-    // Enable dragging once visible
-    setTimeout(attachMapDragHandlers, 60);
+
+    // Make sure we have sane starting values
+    if (typeof mapZoom === 'undefined' || mapZoom === null) mapZoom = 1;
+    if (typeof mapPanX === 'undefined') mapPanX = 0;
+    if (typeof mapPanY === 'undefined') mapPanY = 0;
+
+    // Enable improved interactions + show current location
+    setTimeout(() => {
+        initMapInteractions();
+        updateMapCurrentLocation();
+        updateMapTransform();   // ensure everything is in sync
+    }, 70);
 }
 
 function hideMap() {
@@ -938,26 +948,66 @@ function hideMap() {
     detachMapDragHandlers();
 }
 
-let mz = 1;
-
 function updateMapTransform() {
     const c = $('map-content');
     if (!c) return;
+
+    const zoom = mapZoom || 1;
     const tx = mapPanX || 0;
     const ty = mapPanY || 0;
-    c.style.transform = `translate(${tx}px, ${ty}px) scale(${mz})`;
-    c.style.transformOrigin = 'center center';
+
+    c.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
+    c.style.transformOrigin = '0 0';   // top-left makes math simpler for focal zoom
+
+    // Counter-scale the location markers so they stay readable at all zoom levels
+    const markers = c.querySelectorAll('.map-marker');
+    markers.forEach(m => {
+        m.style.transform = `scale(${1 / zoom})`;
+        m.style.transformOrigin = 'center bottom';
+    });
 }
 
-function zoomMap(d) {
-    mz = Math.max(0.5, Math.min(3, mz + d));
+function zoomMap(delta) {
+    const oldZoom = mapZoom || 1;
+    const newZoom = Math.max(0.5, Math.min(3.5, oldZoom + delta));
+    setMapZoom(newZoom);
+}
+
+function setMapZoom(newZoom, focalX = null, focalY = null) {
+    const container = $('map-content');
+    if (!container) return;
+
+    const oldZoom = mapZoom || 1;
+    const zoom = Math.max(0.5, Math.min(3.5, newZoom));
+
+    if (focalX !== null && focalY !== null) {
+        // Zoom toward a specific point (used by wheel + pinch)
+        const rect = container.getBoundingClientRect();
+        const px = focalX - rect.left;
+        const py = focalY - rect.top;
+
+        // Convert point to world space before zoom change
+        const worldX = (px - (mapPanX || 0)) / oldZoom;
+        const worldY = (py - (mapPanY || 0)) / oldZoom;
+
+        // Apply new zoom
+        mapZoom = zoom;
+
+        // Recalculate pan so the focal point stays under the cursor/finger
+        mapPanX = px - worldX * mapZoom;
+        mapPanY = py - worldY * mapZoom;
+    } else {
+        mapZoom = zoom;
+    }
+
     updateMapTransform();
+
     const zl = $('zoom-level');
-    if (zl) zl.textContent = Math.round(mz * 100) + '%';
+    if (zl) zl.textContent = Math.round(mapZoom * 100) + '%';
 }
 
 function resetMapZoom() {
-    mz = 1;
+    mapZoom = 1;
     mapPanX = 0;
     mapPanY = 0;
     updateMapTransform();
@@ -965,58 +1015,150 @@ function resetMapZoom() {
     if (zl) zl.textContent = '100%';
 }
 
-// ==================== MAP DRAGGING (uses core vars) ====================
-let mapDragHandlersAttached = false;
+function updateMapCurrentLocation() {
+    const marker = $('map-current-marker');
+    const content = $('map-content');
+    if (!marker || !content || !state.location) return;
 
-function attachMapDragHandlers() {
-    const container = $('map-content');
-    if (!container || mapDragHandlersAttached) return;
-
-    const startDrag = (clientX, clientY) => {
-        isDragging = true;
-        dragStartX = clientX;
-        dragStartY = clientY;
-        container.style.cursor = 'grabbing';
+    // Approximate positions matching the static pins (in %)
+    const positions = {
+        village: { bottom: '38%', left: '28%' },
+        woods:   { bottom: '55%', left: '48%' },
+        ruins:   { top: '32%', right: '22%' },
+        church:  { bottom: '38%', left: '28%' } // church is inside village
     };
 
-    const doDrag = (clientX, clientY) => {
-        if (!isDragging) return;
-        const dx = clientX - dragStartX;
-        const dy = clientY - dragStartY;
+    const pos = positions[state.location] || positions.village;
+
+    // Reset all positioning
+    marker.style.top = '';
+    marker.style.bottom = '';
+    marker.style.left = '';
+    marker.style.right = '';
+
+    Object.assign(marker.style, pos);
+    marker.classList.remove('hidden');
+    marker.style.display = 'block';
+}
+
+// ==================== IMPROVED MAP INTERACTIONS ====================
+let mapInteractionsInitialized = false;
+let mapPointerId = null;
+let lastTouchDist = 0;
+
+function initMapInteractions() {
+    const container = $('map-content');
+    if (!container) return;
+
+    // Prevent the old attach function from doing anything
+    if (mapInteractionsInitialized) return;
+
+    // Critical for mobile: disable browser touch behaviors (scroll, zoom, etc.)
+    container.style.touchAction = 'none';
+    container.style.cursor = 'grab';
+
+    // --- POINTER EVENTS (best unified mouse + touch + pen support) ---
+    container.addEventListener('pointerdown', (e) => {
+        // Only primary pointer for dragging
+        if (mapPointerId !== null) return;
+
+        mapPointerId = e.pointerId;
+        container.setPointerCapture(e.pointerId);
+
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        container.style.cursor = 'grabbing';
+    });
+
+    container.addEventListener('pointermove', (e) => {
+        if (!isDragging || e.pointerId !== mapPointerId) return;
+
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+
         mapPanX = (mapPanX || 0) + dx;
         mapPanY = (mapPanY || 0) + dy;
-        dragStartX = clientX;
-        dragStartY = clientY;
+
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+
         updateMapTransform();
-    };
+    });
 
-    const endDrag = () => {
+    const endPointer = (e) => {
+        if (e.pointerId !== mapPointerId) return;
+
         isDragging = false;
-        if (container) container.style.cursor = 'grab';
+        mapPointerId = null;
+        try { container.releasePointerCapture(e.pointerId); } catch (_) {}
+        container.style.cursor = 'grab';
     };
 
-    // Mouse
-    container.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
-    window.addEventListener('mousemove', (e) => doDrag(e.clientX, e.clientY));
-    window.addEventListener('mouseup', endDrag);
+    container.addEventListener('pointerup', endPointer);
+    container.addEventListener('pointercancel', endPointer);
 
-    // Touch
+    // --- MOUSE WHEEL ZOOM (excellent desktop experience) ---
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+
+        const delta = e.deltaY < 0 ? 0.18 : -0.18;   // smooth step
+        const newZoom = Math.max(0.5, Math.min(3.5, (mapZoom || 1) + delta));
+
+        // Zoom toward mouse cursor position
+        setMapZoom(newZoom, e.clientX, e.clientY);
+    }, { passive: false });
+
+    // --- BASIC PINCH-TO-ZOOM (touch) ---
     container.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    window.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 1) doDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    window.addEventListener('touchend', endDrag);
+        if (e.touches.length === 2) {
+            isDragging = false; // cancel single-finger drag
+            lastTouchDist = getTouchDistance(e.touches);
+        }
+    }, { passive: false });
 
-    container.style.cursor = 'grab';
-    mapDragHandlersAttached = true;
+    container.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+            e.preventDefault(); // stop page from scrolling/zooming
+
+            const currentDist = getTouchDistance(e.touches);
+            if (lastTouchDist > 0) {
+                const zoomFactor = currentDist / lastTouchDist;
+                const newZoom = Math.max(0.5, Math.min(3.5, (mapZoom || 1) * zoomFactor));
+
+                // Use midpoint of the two fingers as focal point
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+                setMapZoom(newZoom, midX, midY);
+            }
+            lastTouchDist = currentDist;
+        }
+    }, { passive: false });
+
+    container.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+            lastTouchDist = 0;
+        }
+    });
+
+    mapInteractionsInitialized = true;
+
+    // Initial transform + markers
+    updateMapTransform();
+}
+
+function getTouchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
 }
 
 function detachMapDragHandlers() {
-    // We leave listeners (cheap) but reset state
+    // For backward compatibility with hideMap()
     isDragging = false;
-    mapDragHandlersAttached = false;
+    mapPointerId = null;
+    lastTouchDist = 0;
 }
 
 // ==================== INVENTORY (rewritten - clean, supports Mana + stacking) ====================

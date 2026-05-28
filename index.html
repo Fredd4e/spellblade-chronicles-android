@@ -268,6 +268,23 @@
         #combat.combat-overlay .combat-log-full {
             height: 180px;
         }
+
+        /* Map interaction polish */
+        #map-content {
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #map-content:active {
+            cursor: grabbing;
+        }
+        .map-marker {
+            transition: transform 0.05s linear;
+            z-index: 20;
+        }
+        .map-marker:hover {
+            filter: brightness(1.15);
+        }
         
         /* Area portrait styling */
         #area-portrait { transition: all 0.3s ease; }
@@ -439,20 +456,36 @@
                 <button onclick="resetMapZoom(); hideMap()" class="ml-2 px-3 py-1 fantasy-btn btn-holy text-xs rounded">Close</button>
             </div>
         </div>
-        <div id="map-content" class="relative w-full h-[420px] bg-[#0f0d0b] rounded-2xl overflow-hidden border border-amber-900/30">
-            <img src="assets/map/world-map.jpg" class="w-full h-full object-cover" alt="World Map">
-            <!-- Clickable locations -->
-            <div onclick="travel('village'); hideMap();" class="absolute cursor-pointer" style="bottom:38%; left:28%;">
-                <div class="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center ring-2 ring-white/70"><i class="fas fa-home text-white"></i></div>
-                <div class="text-center text-[10px] text-emerald-300">Village</div>
+        <div id="map-content" class="relative w-full h-[420px] bg-[#0f0d0b] rounded-2xl overflow-hidden border border-amber-900/30 shadow-inner"
+             style="touch-action: none;">
+            <img src="assets/map/world-map.jpg" class="w-full h-full object-cover pointer-events-none select-none" alt="World Map" draggable="false">
+
+            <!-- Clickable location markers (will be counter-scaled by JS) -->
+            <div onclick="travel('village'); hideMap();" class="map-marker absolute cursor-pointer" style="bottom:38%; left:28%;">
+                <div class="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center ring-2 ring-white/80 shadow-md">
+                    <i class="fas fa-home text-white text-sm"></i>
+                </div>
+                <div class="text-center text-[9px] text-emerald-300 font-semibold mt-0.5 drop-shadow">Village</div>
             </div>
-            <div onclick="travel('woods'); hideMap();" class="absolute cursor-pointer" style="bottom:55%; left:48%;">
-                <div class="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center ring-2 ring-white/70"><i class="fas fa-tree text-white"></i></div>
-                <div class="text-center text-[10px] text-emerald-300">Woods</div>
+
+            <div onclick="travel('woods'); hideMap();" class="map-marker absolute cursor-pointer" style="bottom:55%; left:48%;">
+                <div class="w-9 h-9 bg-emerald-700 rounded-full flex items-center justify-center ring-2 ring-white/80 shadow-md">
+                    <i class="fas fa-tree text-white text-sm"></i>
+                </div>
+                <div class="text-center text-[9px] text-emerald-300 font-semibold mt-0.5 drop-shadow">Woods</div>
             </div>
-            <div onclick="travel('ruins'); hideMap();" class="absolute cursor-pointer" style="top:32%; right:22%;">
-                <div class="w-10 h-10 bg-amber-700 rounded-full flex items-center justify-center ring-2 ring-white/70"><i class="fas fa-archway text-white"></i></div>
-                <div class="text-center text-[10px] text-amber-300">Ruins</div>
+
+            <div onclick="travel('ruins'); hideMap();" class="map-marker absolute cursor-pointer" style="top:32%; right:22%;">
+                <div class="w-9 h-9 bg-amber-700 rounded-full flex items-center justify-center ring-2 ring-white/80 shadow-md">
+                    <i class="fas fa-archway text-white text-sm"></i>
+                </div>
+                <div class="text-center text-[9px] text-amber-300 font-semibold mt-0.5 drop-shadow">Ruins</div>
+            </div>
+
+            <!-- Current location indicator (updated by JS) -->
+            <div id="map-current-marker" class="map-marker absolute hidden pointer-events-none" style="z-index: 30;">
+                <div class="w-4 h-4 bg-red-500 rounded-full ring-2 ring-red-300/70 animate-pulse"></div>
+                <div class="text-center text-[8px] text-red-300 font-bold -mt-0.5 tracking-wider">YOU</div>
             </div>
         </div>
     </div>
