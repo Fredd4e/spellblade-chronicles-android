@@ -40,18 +40,41 @@ const ENEMY_TEMPLATES = {
     fallen:         { name: 'Fallen Spellblade',   hp: 115, maxHp: 115, dmg: 16, isBoss: true }
 };
 
-function getEnemyImageSrc(key, enemy) {
-    const name = (enemy && enemy.name || '').toLowerCase();
-    if (key === 'fallen' || name.includes('fallen')) return 'assets/creatures/fallen-spellblade.jpg';
-    if (key === 'overlord' || name.includes('overlord')) return 'assets/creatures/demoness-overlord.jpg';
-    if (key === 'demoness' || name.includes('demoness guardian')) return 'assets/creatures/demoness-guardian.jpg';
-    if (key === 'succubus' || name.includes('succubus')) return 'assets/creatures/demoness-succubus.jpg';
-    if (key === 'guardian' || name.includes('guardian') || name.includes('temple')) return 'assets/creatures/temple-guardian.jpg';
-    if (key === 'shadow' || name.includes('shadow') || name.includes('stalker')) return 'assets/creatures/shadow-stalker.jpg';
-    if (key === 'goblin' || name.includes('goblin') || name.includes('scout')) return 'assets/creatures/goblin-scout.jpg';
-    if (key === 'skeleton' || name.includes('skeletal') || name.includes('skeleton')) return 'assets/creatures/skeleton-warrior.jpg';
-    if (key === 'wolf' || key === 'beast' || name.includes('wolf') || name.includes('beast')) return 'assets/creatures/forest-wolf.jpg';
-    return 'assets/creatures/shadow-stalker.jpg';
+function getEnemyImageSrc(key, currentHp = null, maxHp = null) {
+    const baseMap = {
+        fallen:    'assets/creatures/fallen-spellblade.jpg',
+        overlord:  'assets/creatures/demoness-overlord.jpg',
+        demoness:  'assets/creatures/demoness-guardian.jpg',
+        succubus:  'assets/creatures/demoness-succubus.jpg',
+        guardian:  'assets/creatures/temple-guardian.jpg',
+        shadow:    'assets/creatures/shadow-stalker.jpg',
+        goblin:    'assets/creatures/goblin-scout.jpg',
+        skeleton:  'assets/creatures/skeleton-warrior.jpg',
+        wolf:      'assets/creatures/forest-wolf.jpg',
+        beast:     'assets/creatures/forest-wolf.jpg',
+    };
+
+    let base = baseMap[key] || 'assets/creatures/shadow-stalker.jpg';
+
+    // If no health info provided, return full health version
+    if (currentHp === null || maxHp === null) {
+        return base;
+    }
+
+    const percent = (currentHp / maxHp) * 100;
+
+    if (percent <= 30) {
+        // Critical health stage
+        const critical = base.replace('.jpg', '_critical.jpg');
+        return critical;
+    } else if (percent <= 75) {
+        // Wounded health stage
+        const wounded = base.replace('.jpg', '_wounded.jpg');
+        return wounded;
+    }
+
+    // Full health
+    return base;
 }
 
 // Combat system
@@ -67,10 +90,13 @@ function startCombat(key = 'beast') {
     if ($('enemy-max')) $('enemy-max').textContent = state.enemy.maxHp;
     if ($('enemy-hp-bar')) $('enemy-hp-bar').style.width = '100%';
 
-    // Load correct creature image (now supports all assets)
+    // Remember which enemy type this is (used for health stage portraits)
+    state.enemyKey = key;
+
+    // Load correct creature image based on current health
     const eimg = $('enemy-img');
     if (eimg) {
-        const imgSrc = getEnemyImageSrc(key, state.enemy);
+        const imgSrc = getEnemyImageSrc(key, state.enemy.hp, state.enemy.maxHp);
         eimg.src = imgSrc;
         eimg.style.display = 'block';
         eimg.onerror = function () {
@@ -325,7 +351,21 @@ function enemyAttack() {
     if ((state.player.hp || 0) <= 0) endCombat(false);
 }
 
-function updateEnemyUI(){ if(!state.enemy) return; if($('enemy-hp')) $('enemy-hp').textContent=state.enemy.hp; if($('enemy-hp-bar')) $('enemy-hp-bar').style.width = (state.enemy.hp/state.enemy.maxHp*100)+'%'; }
+function updateEnemyUI() {
+    if (!state.enemy) return;
+
+    if ($('enemy-hp')) $('enemy-hp').textContent = state.enemy.hp;
+    if ($('enemy-hp-bar')) $('enemy-hp-bar').style.width = (state.enemy.hp / state.enemy.maxHp * 100) + '%';
+
+    // Update enemy portrait based on current health stage
+    const eimg = $('enemy-img');
+    if (eimg && state.enemyKey) {
+        const newSrc = getEnemyImageSrc(state.enemyKey, state.enemy.hp, state.enemy.maxHp);
+        if (eimg.src.indexOf(newSrc) === -1) {
+            eimg.src = newSrc;
+        }
+    }
+}
 
 function addCombatMessage(msg) {
     const clog = $('combat-log');
@@ -405,6 +445,7 @@ function endCombat(win) {
     }
 
     state.enemy = null;
+    state.enemyKey = null;
 
     // Reset all spell cooldowns when combat ends
     if (state.player.spellCooldowns) {
