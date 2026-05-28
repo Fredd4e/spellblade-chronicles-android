@@ -976,8 +976,9 @@ function updateMapTransform() {
     inner.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
     inner.style.transformOrigin = '0 0';
 
-    // Counter-scale markers (they live as siblings in the viewport layer, outside the transform)
-    const markers = viewport.querySelectorAll('.map-marker');
+    // Counter-scale the markers so they stay a constant readable size while their position follows the map.
+    // Markers now live inside #map-inner, so they naturally move with pan/zoom.
+    const markers = inner.querySelectorAll('.map-marker');
     markers.forEach(m => {
         m.style.transform = `scale(${1 / zoom})`;
         m.style.transformOrigin = 'center bottom';
