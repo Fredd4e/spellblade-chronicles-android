@@ -963,18 +963,21 @@ function hideMap() {
 }
 
 function updateMapTransform() {
-    const c = $('map-content');
-    if (!c) return;
+    const viewport = $('map-content');
+    const inner = $('map-inner');
+    if (!viewport || !inner) return;
 
     const zoom = mapZoom || 1;
     const tx = mapPanX || 0;
     const ty = mapPanY || 0;
 
-    c.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
-    c.style.transformOrigin = '0 0';   // top-left makes math simpler for focal zoom
+    // Apply transform ONLY to the inner layer. The outer #map-content stays as a clean viewport
+    // with overflow-hidden + rounded corners. This guarantees the map never visually escapes the box.
+    inner.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
+    inner.style.transformOrigin = '0 0';
 
-    // Counter-scale the location markers so they stay readable at all zoom levels
-    const markers = c.querySelectorAll('.map-marker');
+    // Counter-scale markers (they live as siblings in the viewport layer, outside the transform)
+    const markers = viewport.querySelectorAll('.map-marker');
     markers.forEach(m => {
         m.style.transform = `scale(${1 / zoom})`;
         m.style.transformOrigin = 'center bottom';
@@ -988,15 +991,15 @@ function zoomMap(delta) {
 }
 
 function setMapZoom(newZoom, focalX = null, focalY = null) {
-    const container = $('map-content');
-    if (!container) return;
+    const viewport = $('map-content');
+    if (!viewport) return;
 
     const oldZoom = mapZoom || 1;
     const zoom = Math.max(MIN_MAP_ZOOM, Math.min(MAX_MAP_ZOOM, newZoom));
 
     if (focalX !== null && focalY !== null) {
         // Zoom toward a specific point (used by wheel + pinch)
-        const rect = container.getBoundingClientRect();
+        const rect = viewport.getBoundingClientRect();
         const px = focalX - rect.left;
         const py = focalY - rect.top;
 
@@ -1033,26 +1036,24 @@ function resetMapZoom() {
 }
 
 function clampMapPan() {
-    const container = $('map-content');
-    if (!container) return;
+    const viewport = $('map-content');
+    if (!viewport) return;
 
-    const W = container.clientWidth;
-    const H = container.clientHeight;
+    const W = viewport.clientWidth;
+    const H = viewport.clientHeight;
     const z = mapZoom || 1;
 
     const scaledW = W * z;
     const scaledH = H * z;
 
-    // Bounded panning: the map image must always stay fully inside the visible map box
-    // (like content inside an iframe or a fixed viewport). You can pan, but the edges
-    // of the map will stop when they reach the edges of the container.
+    // Bounded panning: the map image must always stay fully inside the visible map box.
+    // The outer #map-content acts as the viewport (with overflow-hidden + rounded corners).
+    // The inner #map-inner receives the transform. This guarantees no visual escape from the box.
     if (scaledW > W) {
-        // Zoomed in — allow panning, but keep the entire map image within the box
-        const minX = W - scaledW;   // left edge of map cannot go past right edge of box
-        const maxX = 0;             // right edge of map cannot go past left edge of box
+        const minX = W - scaledW;
+        const maxX = 0;
         mapPanX = Math.max(minX, Math.min(maxX, mapPanX || 0));
     } else {
-        // At or below 100% — center the map perfectly inside the box
         mapPanX = (W - scaledW) / 2;
     }
 
@@ -1066,11 +1067,11 @@ function clampMapPan() {
 }
 
 function centerMapOnCurrentLocation() {
-    const container = $('map-content');
-    if (!container || !state.location) return;
+    const viewport = $('map-content');
+    if (!viewport || !state.location) return;
 
-    const W = container.clientWidth;
-    const H = container.clientHeight;
+    const W = viewport.clientWidth;
+    const H = viewport.clientHeight;
     const z = mapZoom || DEFAULT_MAP_ZOOM;
 
     // Approximate marker positions as percentages (same data as the pins)
@@ -1127,31 +1128,31 @@ let mapPointerId = null;
 let lastTouchDist = 0;
 
 function initMapInteractions() {
-    const container = $('map-content');
-    if (!container) return;
+    const viewport = $('map-content');
+    if (!viewport) return;
 
     // Prevent the old attach function from doing anything
     if (mapInteractionsInitialized) return;
 
     // Critical for mobile: disable browser touch behaviors (scroll, zoom, etc.)
-    container.style.touchAction = 'none';
-    container.style.cursor = 'grab';
+    viewport.style.touchAction = 'none';
+    viewport.style.cursor = 'grab';
 
     // --- POINTER EVENTS (best unified mouse + touch + pen support) ---
-    container.addEventListener('pointerdown', (e) => {
+    viewport.addEventListener('pointerdown', (e) => {
         // Only primary pointer for dragging
         if (mapPointerId !== null) return;
 
         mapPointerId = e.pointerId;
-        container.setPointerCapture(e.pointerId);
+        viewport.setPointerCapture(e.pointerId);
 
         isDragging = true;
         dragStartX = e.clientX;
         dragStartY = e.clientY;
-        container.style.cursor = 'grabbing';
+        viewport.style.cursor = 'grabbing';
     });
 
-    container.addEventListener('pointermove', (e) => {
+    viewport.addEventListener('pointermove', (e) => {
         if (!isDragging || e.pointerId !== mapPointerId) return;
 
         const dx = e.clientX - dragStartX;
@@ -1172,19 +1173,19 @@ function initMapInteractions() {
 
         isDragging = false;
         mapPointerId = null;
-        try { container.releasePointerCapture(e.pointerId); } catch (_) {}
-        container.style.cursor = 'grab';
+        try { viewport.releasePointerCapture(e.pointerId); } catch (_) {}
+        viewport.style.cursor = 'grab';
 
         // Final safety clamp
         clampMapPan();
         updateMapTransform();
     };
 
-    container.addEventListener('pointerup', endPointer);
-    container.addEventListener('pointercancel', endPointer);
+    viewport.addEventListener('pointerup', endPointer);
+    viewport.addEventListener('pointercancel', endPointer);
 
     // --- MOUSE WHEEL ZOOM (excellent desktop experience) ---
-    container.addEventListener('wheel', (e) => {
+    viewport.addEventListener('wheel', (e) => {
         e.preventDefault();
 
         const delta = e.deltaY < 0 ? 0.18 : -0.18;   // smooth step
@@ -1195,14 +1196,14 @@ function initMapInteractions() {
     }, { passive: false });
 
     // --- BASIC PINCH-TO-ZOOM (touch) ---
-    container.addEventListener('touchstart', (e) => {
+    viewport.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
             isDragging = false; // cancel single-finger drag
             lastTouchDist = getTouchDistance(e.touches);
         }
     }, { passive: false });
 
-    container.addEventListener('touchmove', (e) => {
+    viewport.addEventListener('touchmove', (e) => {
         if (e.touches.length === 2) {
             e.preventDefault(); // stop page from scrolling/zooming
 
@@ -1221,7 +1222,7 @@ function initMapInteractions() {
         }
     }, { passive: false });
 
-    container.addEventListener('touchend', (e) => {
+    viewport.addEventListener('touchend', (e) => {
         if (e.touches.length < 2) {
             lastTouchDist = 0;
         }
