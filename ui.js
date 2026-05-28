@@ -1040,16 +1040,28 @@ function clampMapPan() {
     const H = container.clientHeight;
     const z = mapZoom || 1;
 
-    if (z <= 1) {
-        // At 100% or below (though we now prevent below 1.0) → perfectly center the map
-        const scaledW = W * z;
-        const scaledH = H * z;
-        mapPanX = (W - scaledW) / 2;
-        mapPanY = (H - scaledH) / 2;
+    const scaledW = W * z;
+    const scaledH = H * z;
+
+    // Bounded panning: the map image must always stay fully inside the visible map box
+    // (like content inside an iframe or a fixed viewport). You can pan, but the edges
+    // of the map will stop when they reach the edges of the container.
+    if (scaledW > W) {
+        // Zoomed in — allow panning, but keep the entire map image within the box
+        const minX = W - scaledW;   // left edge of map cannot go past right edge of box
+        const maxX = 0;             // right edge of map cannot go past left edge of box
+        mapPanX = Math.max(minX, Math.min(maxX, mapPanX || 0));
     } else {
-        // Zoomed in (> 100%): Allow the map image to freely extend outside the box.
-        // The container clips it. No edge-sticking or hard pan limits.
-        // User can drag the map completely off-screen if they want.
+        // At or below 100% — center the map perfectly inside the box
+        mapPanX = (W - scaledW) / 2;
+    }
+
+    if (scaledH > H) {
+        const minY = H - scaledH;
+        const maxY = 0;
+        mapPanY = Math.max(minY, Math.min(maxY, mapPanY || 0));
+    } else {
+        mapPanY = (H - scaledH) / 2;
     }
 }
 
