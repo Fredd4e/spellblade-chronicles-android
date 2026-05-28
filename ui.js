@@ -920,9 +920,9 @@ window.quickAssignSpell = function(spellName) {
 // ==================== MAP FUNCTIONS (FIXED) ====================
 
 // Map zoom / pan configuration
-const DEFAULT_MAP_ZOOM = 1.3;   // Start 30% zoomed in
-const MIN_MAP_ZOOM = 0.8;       // Max zoom out limit (don't allow too much empty space)
-const MAX_MAP_ZOOM = 4.0;
+const DEFAULT_MAP_ZOOM = 1.3;   // Default when opening the map (30% zoomed in)
+const MIN_MAP_ZOOM = 1.0;       // Maximum zoom out = 100% (cannot zoom out further)
+const MAX_MAP_ZOOM = 6.0;       // High zoom in limit
 
 function showMap() {
     const m = $('map-modal');
@@ -1040,28 +1040,16 @@ function clampMapPan() {
     const H = container.clientHeight;
     const z = mapZoom || 1;
 
-    // The map image base size before scaling is the container size
-    const scaledW = W * z;
-    const scaledH = H * z;
-
-    // When content is larger than viewport (zoomed in), we can pan until the edge of the map
-    // touches the opposite edge of the container.
-    // Allowed range for tx: [W - scaledW, 0]
-    if (scaledW > W) {
-        const minX = W - scaledW;
-        const maxX = 0;
-        mapPanX = Math.max(minX, Math.min(maxX, mapPanX || 0));
-    } else {
-        // When zoomed out, center the map horizontally
+    if (z <= 1) {
+        // At 100% or below (though we now prevent below 1.0) → perfectly center the map
+        const scaledW = W * z;
+        const scaledH = H * z;
         mapPanX = (W - scaledW) / 2;
-    }
-
-    if (scaledH > H) {
-        const minY = H - scaledH;
-        const maxY = 0;
-        mapPanY = Math.max(minY, Math.min(maxY, mapPanY || 0));
-    } else {
         mapPanY = (H - scaledH) / 2;
+    } else {
+        // Zoomed in (> 100%): Allow the map image to freely extend outside the box.
+        // The container clips it. No edge-sticking or hard pan limits.
+        // User can drag the map completely off-screen if they want.
     }
 }
 
