@@ -174,6 +174,7 @@ const Lore = {
         merchant: {
             name: "Merchant",
             portrait: "assets/npcs/merchant.jpg",
+            video: "assets/videos/merchant_idle.mp4",
             title: "Travelling Trader",
             age: 42,
             married: "Married",
