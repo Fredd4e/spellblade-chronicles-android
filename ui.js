@@ -256,12 +256,34 @@ function startDialogue(npcKey) {
     if (!modal) return;
 
     const portrait = $('dialogue-npc-portrait');
+    const video = $('dialogue-npc-video');
     const nameEl = $('dialogue-npc-name');
     const ageEl = $('dialogue-npc-age');
     const titleEl = $('dialogue-npc-title');
     const textEl = $('dialogue-text');
 
-    if (portrait) {
+    // Reset both elements first
+    if (portrait) portrait.style.display = 'block';
+    if (video) {
+        video.style.display = 'none';
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+
+    // Prefer video if the NPC has one defined
+    if (npc.video && video) {
+        if (portrait) portrait.style.display = 'none';
+        video.style.display = 'block';
+        video.src = npc.video;
+        video.loop = true;
+        video.muted = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        // Try to play (some browsers are strict)
+        video.play().catch(() => {});
+    } else if (portrait) {
+        // Fallback to static portrait
         portrait.src = npc.portrait || 'assets/npcs/elder.jpg';
         portrait.onerror = () => { portrait.style.display = 'none'; };
     }
@@ -505,6 +527,14 @@ function dialogueShop(npcKey) {
 
 function closeDialogue() {
     const modal = $('dialogue-modal');
+    const video = $('dialogue-npc-video');
+    
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+    
     if (modal) {
         modal.style.display = 'none';
         modal.classList.add('hidden');

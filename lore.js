@@ -224,6 +224,7 @@ const Lore = {
         amina: {
             name: "Amina the Huntress",
             portrait: "assets/npcs/amina.jpg",
+            video: "assets/videos/amina_idle.mp4",
             title: "Red Wolf of the Wildermarch",
             age: 29,
             married: "Single",

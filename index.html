@@ -509,8 +509,13 @@
         
         <!-- NPC Header with Portrait -->
         <div class="flex gap-4 p-4 fantasy-modal-header border-b border-amber-900/30">
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 relative w-32 h-32">
+                <!-- Static portrait (fallback) -->
                 <img id="dialogue-npc-portrait" class="npc-portrait w-32 h-32 object-cover rounded-2xl border-2 border-amber-600/60" alt="NPC Portrait">
+                <!-- Looping video for NPCs that have one -->
+                <video id="dialogue-npc-video" 
+                       class="hidden w-32 h-32 object-cover rounded-2xl border-2 border-amber-600/60"
+                       autoplay loop muted playsinline></video>
             </div>
             <div class="flex-1 min-w-0 pt-0.5">
                 <div id="dialogue-npc-name" class="font-bold text-2xl text-amber-300"></div>
