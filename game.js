@@ -94,7 +94,7 @@ function performExploration(area) {
         log('You navigate the dense thickets of the Wildermarch...');
         if (roll < 0.58) {
             // Combat - spriggans are common here
-            const wildPool = ['spriggan', 'spriggan', 'wolf', 'beast', 'goblin'];
+            const wildPool = ['spriggan', 'spriggan', 'mothweaver', 'hoofmaiden', 'nightfang', 'wolf', 'beast'];
             let key = wildPool[Math.floor(Math.random() * wildPool.length)];
             // Rare chance for the Spider Queen as a dangerous encounter
             if (Math.random() < 0.12) key = 'spider_queen';
@@ -141,7 +141,7 @@ function searchLoot(silent = false) {
         if (loc === 'ruins' && Math.random() < 0.25 && (state.quest || 0) >= 1) {
             startCombat('fallen'); // rare boss from searching
         } else {
-            const pool = loc === 'ruins' ? ['skeleton', 'guardian'] : (loc === 'wildermarch' ? ['spriggan', 'wolf', 'beast'] : ['beast', 'wolf', 'goblin']);
+            const pool = loc === 'ruins' ? ['skeleton', 'guardian'] : (loc === 'wildermarch' ? ['spriggan', 'mothweaver', 'hoofmaiden', 'nightfang', 'wolf', 'beast'] : ['beast', 'wolf', 'goblin']);
             startCombat(pool[Math.floor(Math.random() * pool.length)]);
         }
     }

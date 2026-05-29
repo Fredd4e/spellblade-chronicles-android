@@ -40,7 +40,11 @@ const ENEMY_TEMPLATES = {
     fallen:         { name: 'Fallen Spellblade',   hp: 115, maxHp: 115, dmg: 16, isBoss: true },
     // New Wildermarch creatures
     spriggan:       { name: 'Spriggan Warden',     hp: 58, maxHp: 58,  dmg: 10 },
-    spider_queen:   { name: 'Spider Queen',        hp: 128, maxHp: 128, dmg: 19, isBoss: true }
+    spider_queen:   { name: 'Spider Queen',        hp: 128, maxHp: 128, dmg: 19, isBoss: true },
+    // New Wildermarch animal-girl hybrids
+    mothweaver:     { name: 'Mothweaver',          hp: 62, maxHp: 62,  dmg: 11 },
+    hoofmaiden:     { name: 'Hoofmaiden',          hp: 74, maxHp: 74,  dmg: 12 },
+    nightfang:      { name: 'Nightfang',           hp: 55, maxHp: 55,  dmg: 14 }
 };
 
 function getEnemyImageSrc(key, currentHp = null, maxHp = null) {
@@ -57,6 +61,9 @@ function getEnemyImageSrc(key, currentHp = null, maxHp = null) {
         beast:     'assets/creatures/forest-wolf.jpg',
         spriggan:  'assets/creatures/spriggan.jpg',
         spider_queen: 'assets/creatures/spider_queen.jpg',
+        mothweaver: 'assets/creatures/mothweaver.jpg',
+        hoofmaiden: 'assets/creatures/hoofmaiden.jpg',
+        nightfang:  'assets/creatures/nightfang.jpg',
     };
 
     let base = baseMap[key] || 'assets/creatures/shadow-stalker.jpg';
