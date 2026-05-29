@@ -267,6 +267,28 @@ const Lore = {
             hasQuests: false,
             hasShop: false,
             type: "villager"
+        },
+        margot: {
+            name: "Margot Langley",
+            portrait: "assets/npcs/margot.jpg",
+            video: "assets/videos/margot_idle.mp4",
+            title: "Merchant's Daughter",
+            age: 23,
+            married: "Single",
+            hasQuests: false,
+            hasShop: false,
+            type: "villager"
+        },
+        delphine: {
+            name: "Delphine Langley",
+            portrait: "assets/npcs/delphine.jpg",
+            video: "assets/videos/delphine_idle.mp4",
+            title: "Merchant's Daughter",
+            age: 21,
+            married: "Single",
+            hasQuests: false,
+            hasShop: false,
+            type: "villager"
         }
     },
 
@@ -358,6 +380,7 @@ const Lore = {
     villagers: {
         garrick: {
             name: "Garrick",
+            greeting: "Hello there, young one.",
             lines: [
                 "Back in my day, we didn't need fancy spellblades. Just a good sword and the will to swing it until the thing stopped moving.",
                 "These dark things crawling out of the woods? I've seen worse. The real monsters were the ones wearing noble colors during the last war.",
@@ -367,6 +390,7 @@ const Lore = {
         },
         lirael: {
             name: "Lirael",
+            greeting: "Well hello there, handsome. Looking for company?",
             lines: [
                 "Have you seen the new blacksmith's apprentice? Arms like tree trunks. I keep 'accidentally' dropping things near his forge.",
                 "My mother says I shouldn't talk to adventurers. Too dangerous, she says. But you're all so... interesting.",
@@ -376,11 +400,32 @@ const Lore = {
         },
         mira: {
             name: "Mira",
+            greeting: "Well, if it isn't another brave fool wandering through.",
             lines: [
                 "Another brave soul off to save the world? Good. Just don't expect me to name a drink after you until you come back alive.",
                 "The old gods must be laughing. We finally get peace for ten years and now the trees themselves want to kill us.",
                 "My husband used to say 'the night is darkest before dawn.' He was an optimist. I'm a realist. The night is just long.",
                 "You want advice? Don't trust anyone who smiles too much in this village. Especially the ones selling 'holy' water."
+            ]
+        },
+        margot: {
+            name: "Margot",
+            greeting: "Oh. It's you.",
+            lines: [
+                "Father says we shouldn't speak with commoners, but I suppose even adventurers have their uses.",
+                "This village has become so dreadfully provincial lately. Have you considered that the darkness might be a blessing in disguise?",
+                "My sister and I were supposed to be in the capital by now. Instead we're stuck here with... this.",
+                "You smell of the road. How quaint. Do try not to touch anything."
+            ]
+        },
+        delphine: {
+            name: "Delphine",
+            greeting: "Must we speak with every ruffian who passes through?",
+            lines: [
+                "Margot says I shouldn't be so rude, but honestly, some of you adventurers look positively filthy.",
+                "We used to have such lovely parties before all this... unpleasantness. Now it's all 'the end is nigh' this and 'darkness rises' that.",
+                "I suppose someone has to deal with the monsters. Better you than us, obviously.",
+                "Do you even own a proper doublet? No? I didn't think so."
             ]
         }
     }

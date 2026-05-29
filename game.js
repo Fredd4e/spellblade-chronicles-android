@@ -38,7 +38,7 @@ function goToChurch() {
 function exploreVillage() {
     if (state.inCombat) return;
 
-    const villagerKeys = ['garrick', 'lirael', 'mira'];
+    const villagerKeys = ['garrick', 'lirael', 'mira', 'margot', 'delphine'];
     const randomKey = villagerKeys[Math.floor(Math.random() * villagerKeys.length)];
 
     if (typeof startDialogue === 'function') {
