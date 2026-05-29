@@ -185,6 +185,7 @@ const Lore = {
         nun: {
             name: "Sister Elara",
             portrait: "assets/npcs/nun.jpg",
+            video: "assets/videos/nun_idle.mp4",
             title: "Sister of the Silver Light",
             age: 24,
             married: "Not married",
@@ -215,6 +216,7 @@ const Lore = {
         mother: {
             name: "Mother Seraphine",
             portrait: "assets/npcs/mother_seraphine.jpg",
+            video: "assets/videos/mother_idle.mp4",
             title: "High Mother of the Silver Light",
             age: 48,
             married: "Widowed",
