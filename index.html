@@ -485,6 +485,14 @@
                     <div class="text-center text-[9px] text-amber-300 font-semibold mt-0.5 drop-shadow">Ruins</div>
                 </div>
 
+                <!-- Wildermarch new location -->
+                <div onclick="travel('wildermarch'); hideMap();" class="map-marker absolute cursor-pointer" style="top:28%; left:22%; pointer-events: auto;">
+                    <div class="w-9 h-9 bg-emerald-800 rounded-full flex items-center justify-center ring-2 ring-white/80 shadow-md">
+                        <i class="fas fa-tree text-white text-sm"></i>
+                    </div>
+                    <div class="text-center text-[9px] text-emerald-300 font-semibold mt-0.5 drop-shadow">Wildermarch</div>
+                </div>
+
                 <!-- Current location indicator - also inside so it moves with the map -->
                 <div id="map-current-marker" class="map-marker absolute hidden pointer-events-none" style="z-index: 30;">
                     <div class="w-4 h-4 bg-red-500 rounded-full ring-2 ring-red-300/70 animate-pulse"></div>

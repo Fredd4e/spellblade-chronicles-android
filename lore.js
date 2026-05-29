@@ -70,6 +70,21 @@ const Lore = {
                 accepted: "Deep in the sanctum lies my Sunsteel Sigil. Without it, the final seal cannot be understood... or perhaps broken.",
                 completed: "You have returned what was lost. With this, I can finally pass... and you now carry a fragment of the old power."
             }
+        },
+        // New Wildermarch quest
+        webOfTheWild: {
+            id: 5,
+            title: "Web of the Wildermarch",
+            description: "Amina the Huntress has tracked the monstrous Spider Queen to the Wildermarch. Help her end the threat before more travelers vanish.",
+            objective: "Defeat the Spider Queen in the Wildermarch",
+            target: 1,
+            progressKey: "spiderQueenSlain",
+            reward: { gold: 85, xp: 70, item: "Amina's Hunting Charm" },
+            stages: {
+                offer: "I've hunted these woods for years. Something new and terrible has taken root — the Spider Queen. Her webs are claiming hunters and merchants alike. Will you help me kill the bitch?",
+                accepted: "Good. She lurks in the thickest parts of the Wildermarch. Bring me proof she's dead and I'll make it worth your while.",
+                completed: "You did it. The Wildermarch breathes easier tonight. Here's your reward, Spellblade. If you ever need a hunting partner... you know where to find me."
+            }
         }
     },
 
@@ -93,7 +108,8 @@ const Lore = {
     travel: {
         village: "You return to the safety of Eldoria Village.",
         woods: "You step into the dark Whispering Woods...",
-        ruins: "You enter the ancient and ominous Ruined Temple."
+        ruins: "You enter the ancient and ominous Ruined Temple.",
+        wildermarch: "You venture into the untamed Wildermarch, where the trees grow wild and ancient."
     },
 
     combatStart: {
@@ -134,6 +150,12 @@ const Lore = {
             bgImage: "assets/backgrounds/ruins.jpg",
             caption: "Ancient stones hum with forgotten power.",
             flavor: "Broken pillars and faded runes. Something old and hungry stirs below."
+        },
+        wildermarch: {
+            name: "Wildermarch",
+            bgImage: "assets/backgrounds/wildermarch.jpg",
+            caption: "Untamed wilds thick with ancient trees and lurking dangers.",
+            flavor: "The forest here feels older and wilder. Spriggans roam, and something far worse spins its webs in the dark."
         }
     },
 
@@ -198,6 +220,16 @@ const Lore = {
             hasQuests: false,
             hasShop: true,
             type: "mother"
+        },
+        amina: {
+            name: "Amina the Huntress",
+            portrait: "assets/npcs/amina.jpg",
+            title: "Red Wolf of the Wildermarch",
+            age: 29,
+            married: "Single",
+            hasQuests: true,
+            hasShop: false,
+            type: "amina"
         }
     },
 
@@ -271,6 +303,18 @@ const Lore = {
             "<b>Mother Seraphine:</b> 'The faithful have grown fewer, but those who remain burn all the brighter. Do not let the shadows dim that flame.'"
         ],
         shopIntro: "I keep a small collection of relics and consecrated arms for those who walk the true path. They are not for the faint of heart."
+    },
+
+    // Amina the Huntress - Wildermarch NPC
+    amina: {
+        greeting: "Careful where you step, stranger. These woods have teeth.",
+        talk: [
+            "<b>Amina:</b> 'I've tracked game and monsters through every thicket in the Wildermarch. These new spriggans are different — meaner, smarter.'",
+            "<b>Amina:</b> 'The Spider Queen is the real problem. She's been here longer than the corruption in the temple. Her kind remembers the old pacts.'",
+            "<b>Amina:</b> 'My mother taught me the bow before I could walk. Said the forest would always need watchers who don't flinch.'",
+            "<b>Amina:</b> 'If the Spider Queen falls, the Wildermarch might just become a place worth hunting in again.'"
+        ],
+        questOffer: "I've been waiting for someone who can actually fight. The Spider Queen has made her nest deeper in the Wildermarch. Help me kill her and I'll split the bounty."
     }
 };
 

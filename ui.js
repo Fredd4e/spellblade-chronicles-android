@@ -97,6 +97,8 @@ function showAreaPortrait(loc) {
     } else if (areaKey === 'church') {
         // Church reuses village background for now (peaceful indoor feel via overlay + caption)
         bgPath = (areas.village && areas.village.bgImage) ? areas.village.bgImage : 'assets/backgrounds/village.jpg';
+    } else if (areaKey === 'wildermarch') {
+        bgPath = (areas.wildermarch && areas.wildermarch.bgImage) ? areas.wildermarch.bgImage : 'assets/backgrounds/wildermarch.jpg';
     }
 
     // Only set full background on the game container
@@ -205,6 +207,12 @@ function renderActions() {
             { label: 'Pray for Strength', icon: 'fa-hands-praying', fn: prayAtChurch }
         ];
     }
+    else if (loc === 'wildermarch') {
+        actions = [
+            { label: 'Explore the Wilds', icon: 'fa-tree', fn: exploreWildermarch },
+            { label: 'Find Amina', icon: 'fa-user-ninja', fn: () => startDialogue('amina') }
+        ];
+    }
 
     actions.forEach(a => {
         const btn = document.createElement('button');
@@ -219,7 +227,7 @@ function renderActions() {
             btnClass += ' btn-holy';
         } else if (loc === 'ruins' || label.includes('temple') || label.includes('descend') || label.includes('explore')) {
             btnClass += ' btn-combat';
-        } else if (loc === 'woods' || label.includes('hunt') || label.includes('woods')) {
+        } else if (loc === 'woods' || label.includes('hunt') || label.includes('woods') || loc === 'wildermarch') {
             btnClass += ' btn-action';
         } else {
             btnClass += ' btn-action';
@@ -267,6 +275,7 @@ function startDialogue(npcKey) {
         textEl.innerHTML = `Hello, traveler. What brings you to speak with me today?`;
         if (npcKey === 'elder') textEl.innerHTML = `The wards grow weaker by the day, Aether. We must act.`;
         if (npcKey === 'merchant') textEl.innerHTML = `Ah, a fellow adventurer! Care to browse my wares?`;
+        if (npcKey === 'amina') textEl.innerHTML = `Watch your step out here. These woods bite back.`;
     }
 
     renderDialogueOptions(npcKey, npc);
@@ -399,6 +408,27 @@ function dialogueTalk(npcKey) {
         }
 
         log(`<b>Aelric:</b> ${message.replace(/<[^>]+>/g, '')}`, true);
+    } else if (npcKey === 'amina') {
+        const aminaData = (window.Lore && Lore.amina) || {};
+        message = aminaData.greeting || "Careful where you step, stranger.";
+
+        if (!state.quests || !state.quests.webOfTheWild) {
+            message = aminaData.questOffer || message;
+            if (!state.quests) state.quests = {};
+            state.quests.webOfTheWild = 1;
+            log("Quest accepted: Web of the Wildermarch - Defeat the Spider Queen.", true);
+        } else if (state.quests.webOfTheWild === 1 && state.spiderQueenSlain) {
+            state.quests.webOfTheWild = 2;
+            state.player.gold = (state.player.gold || 0) + 85;
+            state.player.xp = (state.player.xp || 0) + 70;
+            log("Quest complete! +85 Gold +70 XP", true);
+            if (typeof checkLevelUp === 'function') checkLevelUp();
+            message = (Lore.quests.webOfTheWild && Lore.quests.webOfTheWild.stages.completed) || "The Wildermarch is safer thanks to you.";
+        } else if (state.quests.webOfTheWild >= 2) {
+            message = "The queen is dead. The woods feel lighter.";
+        }
+
+        log(`<b>Amina:</b> ${message.replace(/<[^>]+>/g, '')}`, true);
     }
 
     if (textEl) textEl.innerHTML = message;
@@ -450,6 +480,21 @@ function dialogueQuests(npcKey) {
         }
         textEl.innerHTML = html;
         log("<b>Aelric:</b> The Sigil... bring it to me.", true);
+
+    } else if (npcKey === 'amina') {
+        const progress = (state.quests && state.quests.webOfTheWild) || 0;
+        let html = `<b>Web of the Wildermarch</b><br>Help Amina slay the Spider Queen haunting the wilds.`;
+
+        if (progress === 0) {
+            html += `<br><br>Status: Not started<br>Objective: Find and defeat the Spider Queen in the Wildermarch.`;
+        } else if (progress === 1) {
+            const done = !!state.spiderQueenSlain;
+            html += `<br><br>Status: Active<br>Objective: Slay the Spider Queen.<br>Progress: ${done ? 'Complete - Return to Amina' : 'In progress'}`;
+        } else {
+            html += `<br><br><b>Complete!</b><br>The Wildermarch is safer thanks to you.`;
+        }
+        textEl.innerHTML = html;
+        log("<b>Amina:</b> Bring me proof the Spider Queen is dead.", true);
     }
 }
 
@@ -1080,7 +1125,8 @@ function centerMapOnCurrentLocation() {
         village: { x: 0.28, y: 0.62 },   // left:28%, bottom:38% → y from top ≈ 62%
         woods:   { x: 0.48, y: 0.45 },
         ruins:   { x: 0.78, y: 0.32 },
-        church:  { x: 0.28, y: 0.62 }
+        church:  { x: 0.28, y: 0.62 },
+        wildermarch: { x: 0.22, y: 0.28 }  // wild area northwest of the village/woods
     };
 
     const pos = locationPositions[state.location] || locationPositions.village;
@@ -1107,7 +1153,8 @@ function updateMapCurrentLocation() {
         village: { bottom: '38%', left: '28%' },
         woods:   { bottom: '55%', left: '48%' },
         ruins:   { top: '32%', right: '22%' },
-        church:  { bottom: '38%', left: '28%' } // church is inside village
+        church:  { bottom: '38%', left: '28%' }, // church is inside village
+        wildermarch: { top: '28%', left: '22%' }
     };
 
     const pos = positions[state.location] || positions.village;

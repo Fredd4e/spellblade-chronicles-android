@@ -37,7 +37,10 @@ const ENEMY_TEMPLATES = {
     demoness:       { name: 'Demoness Guardian',   hp: 85, maxHp: 85,  dmg: 15 },
     overlord:       { name: 'Demoness Overlord',   hp: 110, maxHp: 110, dmg: 18, isBoss: true },
     // Boss
-    fallen:         { name: 'Fallen Spellblade',   hp: 115, maxHp: 115, dmg: 16, isBoss: true }
+    fallen:         { name: 'Fallen Spellblade',   hp: 115, maxHp: 115, dmg: 16, isBoss: true },
+    // New Wildermarch creatures
+    spriggan:       { name: 'Spriggan Warden',     hp: 58, maxHp: 58,  dmg: 10 },
+    spider_queen:   { name: 'Spider Queen',        hp: 128, maxHp: 128, dmg: 19, isBoss: true }
 };
 
 function getEnemyImageSrc(key, currentHp = null, maxHp = null) {
@@ -52,6 +55,8 @@ function getEnemyImageSrc(key, currentHp = null, maxHp = null) {
         skeleton:  'assets/creatures/skeleton-warrior.jpg',
         wolf:      'assets/creatures/forest-wolf.jpg',
         beast:     'assets/creatures/forest-wolf.jpg',
+        spriggan:  'assets/creatures/spriggan.jpg',
+        spider_queen: 'assets/creatures/spider_queen.jpg',
     };
 
     let base = baseMap[key] || 'assets/creatures/shadow-stalker.jpg';
@@ -431,6 +436,11 @@ function endCombat(win) {
         if (enemy.name && enemy.name.toLowerCase().includes('guardian') && state.location === 'ruins') {
             state.sigilRecovered = true;
             log("Among the rubble you find an ancient glowing sigil. Aelric will know what to do with it.", true);
+        }
+
+        if (enemy.name === 'Spider Queen' && state.location === 'wildermarch') {
+            state.spiderQueenSlain = true;
+            log("You carve a venomous fang from the Spider Queen as proof for Amina.", true);
         }
 
         state.player.xp = (state.player.xp || 0) + xp;

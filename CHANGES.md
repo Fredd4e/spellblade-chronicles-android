@@ -2,6 +2,23 @@
 
 > All changes made locally only. No git push performed.
 
+## Version 0.7 Expansion — Wildermarch
+- New explorable location: **Wildermarch** (wild untamed forest area)
+  - New background art
+  - New enemies: Spriggan (woodland bark creature, female variant with health stages)
+  - New boss enemy: Spider Queen (voluptuous spider monster girl with full wounded/critical variants)
+- New NPC: **Amina the Huntress** (busty redhead archer) with full portrait
+  - Located in Wildermarch
+  - New multi-stage quest: "Web of the Wildermarch" — defeat the Spider Queen for gold, XP, and charm
+- Full integration:
+  - Map marker + travel support
+  - Exploration encounters (common spriggans, rare Spider Queen)
+  - Discoveries and loot tables updated
+  - Combat rewards and quest flag triggers
+  - Dialogue, quest log, and area actions
+- All new creature/NPC/background images generated via Grok Imagine to match the sensual dark fantasy tone of existing assets
+- Local only — ready for commit/push
+
 ## Combat Window Fullscreen Overhaul
 - Combat now opens as a **true full-screen overlay** (exactly like the Dialogue modal):
   - Dark backdrop covering the entire screen

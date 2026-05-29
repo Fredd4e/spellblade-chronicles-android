@@ -20,6 +20,9 @@ function travel(newLoc) {
         state.locationName = "Church of the Silver Light";
         log("You step into the quiet warmth of the old church.", true);
         if (old === 'ruins') state.templeLevel = 1;
+    } else if (newLoc === 'wildermarch') {
+        state.locationName = "Wildermarch";
+        if (old !== 'wildermarch' && window.Lore && Lore.travel) log(Lore.travel.wildermarch, true);
     }
 
     showAreaPortrait(newLoc);
@@ -87,11 +90,32 @@ function performExploration(area) {
             searchLoot(true);
         }
     }
+    else if (area === 'wildermarch') {
+        log('You navigate the dense thickets of the Wildermarch...');
+        if (roll < 0.58) {
+            // Combat - spriggans are common here
+            const wildPool = ['spriggan', 'spriggan', 'wolf', 'beast', 'goblin'];
+            let key = wildPool[Math.floor(Math.random() * wildPool.length)];
+            // Rare chance for the Spider Queen as a dangerous encounter
+            if (Math.random() < 0.12) key = 'spider_queen';
+            startCombat(key);
+        } else if (roll < 0.78) {
+            triggerDiscovery('wildermarch');
+        } else {
+            searchLoot(true);
+        }
+    }
 }
 
 function exploreRuins() {
     if (state.inCombat) return;
     performExploration('ruins');
+}
+
+function exploreWildermarch() {
+    if (state.inCombat) return;
+    log('You press deeper into the wild and untamed Wildermarch...');
+    performExploration('wildermarch');
 }
 
 // descendTemple is defined in ui.js (global)
@@ -117,7 +141,7 @@ function searchLoot(silent = false) {
         if (loc === 'ruins' && Math.random() < 0.25 && (state.quest || 0) >= 1) {
             startCombat('fallen'); // rare boss from searching
         } else {
-            const pool = loc === 'ruins' ? ['skeleton', 'guardian'] : ['beast', 'wolf', 'goblin'];
+            const pool = loc === 'ruins' ? ['skeleton', 'guardian'] : (loc === 'wildermarch' ? ['spriggan', 'wolf', 'beast'] : ['beast', 'wolf', 'goblin']);
             startCombat(pool[Math.floor(Math.random() * pool.length)]);
         }
     }
@@ -138,6 +162,13 @@ function triggerDiscovery(area) {
             "In a collapsed side chamber, you discover an old painting of a black horse standing before a burning temple. The paint is still strangely vibrant.",
             "A skeletal hand still clutches a sealed letter addressed to 'My dearest Elara'. You choose not to open it.",
             "You pry open an ancient offering box and find several gold coins alongside a small vial of what might once have been holy water."
+        ],
+        wildermarch: [
+            "You discover a circle of ancient standing stones half-swallowed by roots. The air hums with old, wild magic.",
+            "A massive tree has grown around the skeleton of a long-dead hunter. Their bow is still clutched in bony fingers, remarkably preserved.",
+            "You find a spriggan's hollow — a nest of woven branches and shining stones. Something valuable glints among the offerings.",
+            "Thick spider silk stretches between trees like ghostly banners. A torn piece of red cloth is caught in the webbing.",
+            "You stumble across the remains of a merchant's cart, overgrown and looted. A single silver arrowhead lies in the dirt."
         ]
     };
 
