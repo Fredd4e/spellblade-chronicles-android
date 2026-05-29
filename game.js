@@ -35,7 +35,18 @@ function goToChurch() {
     travel('church');
 }
 
-function exploreVillage() { if (state.inCombat) return; log('You explore the village square.'); updateAll(); save(); }
+function exploreVillage() {
+    if (state.inCombat) return;
+
+    const villagerKeys = ['garrick', 'lirael', 'mira'];
+    const randomKey = villagerKeys[Math.floor(Math.random() * villagerKeys.length)];
+
+    if (typeof startDialogue === 'function') {
+        startDialogue(randomKey);
+    } else {
+        log('You chat with some of the locals. They seem nervous about the growing darkness.');
+    }
+}
 
 function exploreWoods() {
     if (state.inCombat) return;

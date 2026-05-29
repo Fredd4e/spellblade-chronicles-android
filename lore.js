@@ -234,6 +234,39 @@ const Lore = {
             hasQuests: true,
             hasShop: false,
             type: "amina"
+        },
+        garrick: {
+            name: "Garrick the Crippled",
+            portrait: "assets/npcs/garrick.jpg",
+            video: "assets/videos/garrick_idle.mp4",
+            title: "Former Village Guard",
+            age: 67,
+            married: "Widowed",
+            hasQuests: false,
+            hasShop: false,
+            type: "villager"
+        },
+        lirael: {
+            name: "Lirael Voss",
+            portrait: "assets/npcs/lirael.jpg",
+            video: "assets/videos/lirael_idle.mp4",
+            title: "Baker's Daughter",
+            age: 22,
+            married: "Single",
+            hasQuests: false,
+            hasShop: false,
+            type: "villager"
+        },
+        mira: {
+            name: "Mira Thorne",
+            portrait: "assets/npcs/mira.jpg",
+            video: "assets/videos/mira_idle.mp4",
+            title: "Tavern Keeper's Widow",
+            age: 38,
+            married: "Widowed",
+            hasQuests: false,
+            hasShop: false,
+            type: "villager"
         }
     },
 
@@ -319,6 +352,37 @@ const Lore = {
             "<b>Amina:</b> 'If the Spider Queen falls, the Wildermarch might just become a place worth hunting in again.'"
         ],
         questOffer: "I've been waiting for someone who can actually fight. The Spider Queen has made her nest deeper in the Wildermarch. Help me kill her and I'll split the bounty."
+    },
+
+    // Random Villagers for Village Square exploration
+    villagers: {
+        garrick: {
+            name: "Garrick",
+            lines: [
+                "Back in my day, we didn't need fancy spellblades. Just a good sword and the will to swing it until the thing stopped moving.",
+                "These dark things crawling out of the woods? I've seen worse. The real monsters were the ones wearing noble colors during the last war.",
+                "My leg? Took it clean off at the Battle of Silver Hollow. Still hurts when it rains. At least the pain reminds me I'm still alive.",
+                "You young ones always rushing off to be heroes. Me? I just want to sit here and complain about how the ale's gotten weaker every year."
+            ]
+        },
+        lirael: {
+            name: "Lirael",
+            lines: [
+                "Have you seen the new blacksmith's apprentice? Arms like tree trunks. I keep 'accidentally' dropping things near his forge.",
+                "My mother says I shouldn't talk to adventurers. Too dangerous, she says. But you're all so... interesting.",
+                "The shadows are getting worse, but at least it's good for business. Everyone needs new clothes when they're fleeing in the night.",
+                "I heard one of the merchants say the darkness makes people do strange things. Personally, I think people were already strange."
+            ]
+        },
+        mira: {
+            name: "Mira",
+            lines: [
+                "Another brave soul off to save the world? Good. Just don't expect me to name a drink after you until you come back alive.",
+                "The old gods must be laughing. We finally get peace for ten years and now the trees themselves want to kill us.",
+                "My husband used to say 'the night is darkest before dawn.' He was an optimist. I'm a realist. The night is just long.",
+                "You want advice? Don't trust anyone who smiles too much in this village. Especially the ones selling 'holy' water."
+            ]
+        }
     }
 };
 

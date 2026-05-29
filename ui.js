@@ -298,6 +298,9 @@ function startDialogue(npcKey) {
         if (npcKey === 'elder') textEl.innerHTML = `The wards grow weaker by the day, Aether. We must act.`;
         if (npcKey === 'merchant') textEl.innerHTML = `Ah, a fellow adventurer! Care to browse my wares?`;
         if (npcKey === 'amina') textEl.innerHTML = `Watch your step out here. These woods bite back.`;
+        if (['garrick', 'lirael', 'mira'].includes(npcKey)) {
+            textEl.innerHTML = "Ah, a new face in the square. Care to hear an old story?";
+        }
     }
 
     renderDialogueOptions(npcKey, npc);
@@ -451,6 +454,13 @@ function dialogueTalk(npcKey) {
         }
 
         log(`<b>Amina:</b> ${message.replace(/<[^>]+>/g, '')}`, true);
+    } else if (npc.type === 'villager' || ['garrick', 'lirael', 'mira'].includes(npcKey)) {
+        const villagerData = (window.Lore && Lore.villagers && Lore.villagers[npcKey]) || {};
+        const lines = villagerData.lines || ["The shadows grow longer every night..."];
+        const randomLine = lines[Math.floor(Math.random() * lines.length)];
+        message = randomLine;
+
+        log(`<b>${villagerData.name || npc.name}:</b> ${message.replace(/<[^>]+>/g, '')}`, true);
     }
 
     if (textEl) textEl.innerHTML = message;
